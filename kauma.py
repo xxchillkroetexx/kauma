@@ -30,6 +30,8 @@ def evaluate_testcase(testcase):
             return add_numbers(testcase["arguments"])
         case "subtract_numbers":
             return subtract_numbers(testcase["arguments"])
+        case "poly2block":
+            return poly2block(testcase["arguments"])
         case _:
             raise ValueError("Invalid action")
     pass
