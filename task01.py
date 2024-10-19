@@ -1,4 +1,10 @@
-from helper import set_bit, bytes_to_base64, mask_bytes, base64_to_bytes
+from helper import (
+    gf_mult_polynomial,
+    set_bit,
+    bytes_to_base64,
+    mask_bytes,
+    base64_to_bytes,
+)
 
 
 def add_numbers(args: dict) -> dict:
@@ -60,8 +66,6 @@ def block2poly(args: dict) -> dict:
             raise ValueError("Invalid semantic")
     pass
 
-    return {"coefficients": args["block"]}
-
 
 def xex_block(block: str) -> dict:
     """
@@ -79,3 +83,33 @@ def xex_block(block: str) -> dict:
                 coefficients.append(byte_index * 8 + bit_index)
 
     return {"coefficients": coefficients}
+
+
+def gfmul(args: dict) -> dict:
+    """
+    Multiply two numbers in GF(2^128)
+    """
+
+    match args["semantic"]:
+        case "xex":
+            return gfmul_xex(args)
+        case _:
+            raise ValueError("Invalid semantic")
+    pass
+
+
+def gfmul_xex(args: dict) -> dict:
+    """
+    Multiply two numbers in GF(2^128) using XEX mode
+    """
+    minimal_polynomial = (1 << 128) | (1 << 7) | (1 << 2) | (1 << 1) | 1
+
+    a_bytes = base64_to_bytes(args["a"])
+    b_bytes = base64_to_bytes(args["b"])
+
+    a = int.from_bytes(a_bytes, "little")
+    b = int.from_bytes(b_bytes, "little")
+
+    product = gf_mult_polynomial(a, b, minimal_polynomial)
+
+    return {"product": bytes_to_base64(product.to_bytes(16, "little"))}

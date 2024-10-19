@@ -18,3 +18,14 @@ def bytes_to_base64(bytestr: str) -> str:
 
 def base64_to_bytes(b64str: str) -> str:
     return base64.b64decode(b64str)
+
+
+def gf_mult_polynomial(a: int, b: int, minimal_polynomial: int) -> int:
+
+    result = a * b
+
+    while result.bit_length() >= minimal_polynomial.bit_length():
+        shift = result.bit_length() - minimal_polynomial.bit_length()
+        result ^= minimal_polynomial << shift
+
+    return result

@@ -40,6 +40,11 @@ def evaluate_testcase(testcase):
                 return block2poly(testcase["arguments"])
             except ValueError as e:
                 raise ValueError(f"Error in block2poly: {e}")
+        case "gfmul":
+            try:
+                return gfmul(testcase["arguments"])
+            except ValueError as e:
+                raise ValueError(f"Error in gfmul: {e}")
         case _:
             raise ValueError("Invalid action")
     pass
