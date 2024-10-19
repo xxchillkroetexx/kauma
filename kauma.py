@@ -31,7 +31,15 @@ def evaluate_testcase(testcase):
         case "subtract_numbers":
             return subtract_numbers(testcase["arguments"])
         case "poly2block":
-            return poly2block(testcase["arguments"])
+            try:
+                return poly2block(testcase["arguments"])
+            except ValueError as e:
+                raise ValueError(f"Error in poly2block: {e}")
+        case "block2poly":
+            try:
+                return block2poly(testcase["arguments"])
+            except ValueError as e:
+                raise ValueError(f"Error in block2poly: {e}")
         case _:
             raise ValueError("Invalid action")
     pass
