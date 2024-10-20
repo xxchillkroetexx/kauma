@@ -1,5 +1,5 @@
-import cryptography.hazmat.primitives.ciphers as ciphers
 from helper import (
+    aes_ecb,
     gf_mult_polynomial,
     set_bit,
     bytes_to_base64,
@@ -27,6 +27,10 @@ def subtract_numbers(args: dict) -> dict:
 def poly2block(args: dict) -> dict:
     """
     Convert a polynom to a block
+
+    args: dictionary containing the semantic and the polynom coefficients
+
+    returns: dictionary containing the block
     """
     mode = args["semantic"]
     match mode:
@@ -42,6 +46,10 @@ def poly2block(args: dict) -> dict:
 def xex_polynom(coefficients: list) -> dict:
     """
     convert a polynom to a 16 byte block using XEX mode
+
+    coefficients: list of coefficients
+
+    returns: dictionary containing the block
     """
     block = bytearray(16)
 
@@ -58,6 +66,10 @@ def xex_polynom(coefficients: list) -> dict:
 def block2poly(args: dict) -> dict:
     """
     Convert a 16 byte block to a polynom
+
+    args: dictionary containing the semantic and the block
+
+    returns: dictionary containing the coefficients
     """
     mode = args["semantic"]
     match mode:
@@ -71,6 +83,10 @@ def block2poly(args: dict) -> dict:
 def xex_block(block: str) -> dict:
     """
     convert a 16 byte block to a polynom using XEX mode
+
+    block: base64 encoded block
+
+    returns: dictionary containing the coefficients
     """
     coefficients = []
     try:
@@ -89,6 +105,10 @@ def xex_block(block: str) -> dict:
 def gfmul(args: dict) -> dict:
     """
     Multiply two numbers in GF(2^128)
+
+    args: dictionary containing the semantic, a and b
+
+    returns: dictionary containing the product
     """
 
     match args["semantic"]:
@@ -102,6 +122,10 @@ def gfmul(args: dict) -> dict:
 def gfmul_xex(args: dict) -> dict:
     """
     Multiply two numbers in GF(2^128) using XEX mode
+
+    args: dictionary containing a and b
+
+    returns: dictionary containing the product
     """
     minimal_polynomial = (1 << 128) | (1 << 7) | (1 << 2) | (1 << 1) | 1
 
@@ -119,6 +143,10 @@ def gfmul_xex(args: dict) -> dict:
 def sea128(args: dict) -> dict:
     """
     Encrypt or decrypt a block using SEA128
+
+    args: dictionary containing the mode, input and key
+
+    returns: dictionary containing the output
     """
     mode = args["mode"]
     match mode:
@@ -135,6 +163,11 @@ def sea128_encrypt(input: str, key: str) -> dict:
     """
     Encrypt a block using SEA128
     S_K(P) = E_K(P) XOR c0ffeec0ffeec0ffeec0ffeec0ffee11
+
+    input: base64 encoded input block
+    key: base64 encoded key
+
+    returns: base64 encoded ciphertext
     """
     input_bytes = base64_to_bytes(input)
     key_bytes = base64_to_bytes(key)
@@ -152,6 +185,11 @@ def sea128_decrypt(input: str, key: str) -> dict:
     """
     Encrypt a block using SEA128
     S_K(P) = E_K(P) XOR c0ffeec0ffeec0ffeec0ffeec0ffee11
+
+    input: base64 encoded input block
+    key: base64 encoded key
+
+    returns: base64 encoded plaintext
     """
     input_bytes = base64_to_bytes(input)
     key_bytes = base64_to_bytes(key)
@@ -164,21 +202,3 @@ def sea128_decrypt(input: str, key: str) -> dict:
     output = bytes_to_base64(plaintext)
     return {"output": output}
 
-
-def aes_ecb(key: str, input: str, mode: str) -> str:
-    """
-    Encrypt a block using AES-ECB
-    """
-
-    cipher_aes_ecb = ciphers.Cipher(ciphers.algorithms.AES(key), ciphers.modes.ECB())
-
-    match mode:
-        case "encrypt":
-            encryptor = cipher_aes_ecb.encryptor()
-            return encryptor.update(input) + encryptor.finalize()
-        case "decrypt":
-            decryptor = cipher_aes_ecb.decryptor()
-            return decryptor.update(input) + decryptor.finalize()
-        case _:
-            raise ValueError("Invalid mode")
-    pass
