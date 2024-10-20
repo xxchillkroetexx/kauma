@@ -174,7 +174,7 @@ def sea128_encrypt(input: str, key: str) -> dict:
 
     COFFEE = bytes.fromhex("c0ffeec0ffeec0ffeec0ffeec0ffee11")
 
-    ciphertext = aes_ecb(key_bytes, input_bytes, "encrypt")
+    ciphertext = aes_ecb(input=input_bytes, key=key_bytes, mode="encrypt")
     ciphertext = bytes(ciphertext[i] ^ COFFEE[i] for i in range(16))
 
     output = bytes_to_base64(ciphertext)
@@ -197,7 +197,7 @@ def sea128_decrypt(input: str, key: str) -> dict:
     COFFEE = bytes.fromhex("c0ffeec0ffeec0ffeec0ffeec0ffee11")
 
     ciphertext = bytes(input_bytes[i] ^ COFFEE[i] for i in range(16))
-    plaintext = aes_ecb(key_bytes, ciphertext, "decrypt")
+    plaintext = aes_ecb(input=ciphertext, key=key_bytes, mode="decrypt")
 
     output = bytes_to_base64(plaintext)
     return {"output": output}
