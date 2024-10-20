@@ -45,6 +45,12 @@ def evaluate_testcase(testcase):
                 return gfmul(testcase["arguments"])
             except ValueError as e:
                 raise ValueError(f"Error in gfmul: {e}")
+        case "sea128":
+            try:
+                return sea128(testcase["arguments"])
+            except ValueError as e:
+                raise ValueError(f"Error in sea128: {e}")
+        
         case _:
             raise ValueError("Invalid action")
     pass

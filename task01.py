@@ -1,3 +1,4 @@
+import cryptography.hazmat.primitives.ciphers as ciphers
 from helper import (
     gf_mult_polynomial,
     set_bit,
@@ -113,3 +114,71 @@ def gfmul_xex(args: dict) -> dict:
     product = gf_mult_polynomial(a, b, minimal_polynomial)
 
     return {"product": bytes_to_base64(product.to_bytes(16, "little"))}
+
+
+def sea128(args: dict) -> dict:
+    """
+    Encrypt or decrypt a block using SEA128
+    """
+    mode = args["mode"]
+    match mode:
+        case "encrypt":
+            return sea128_encrypt(key=args["key"], input=args["input"])
+        case "decrypt":
+            return sea128_decrypt(key=args["key"], input=args["input"])
+        case _:
+            raise ValueError("Invalid mode")
+    pass
+
+
+def sea128_encrypt(input: str, key: str) -> dict:
+    """
+    Encrypt a block using SEA128
+    S_K(P) = E_K(P) XOR c0ffeec0ffeec0ffeec0ffeec0ffee11
+    """
+    input_bytes = base64_to_bytes(input)
+    key_bytes = base64_to_bytes(key)
+
+    COFFEE = bytes.fromhex("c0ffeec0ffeec0ffeec0ffeec0ffee11")
+
+    ciphertext = aes_ecb(key_bytes, input_bytes, "encrypt")
+    ciphertext = bytes(ciphertext[i] ^ COFFEE[i] for i in range(16))
+
+    output = bytes_to_base64(ciphertext)
+    return {"output": output}
+
+
+def sea128_decrypt(input: str, key: str) -> dict:
+    """
+    Encrypt a block using SEA128
+    S_K(P) = E_K(P) XOR c0ffeec0ffeec0ffeec0ffeec0ffee11
+    """
+    input_bytes = base64_to_bytes(input)
+    key_bytes = base64_to_bytes(key)
+
+    COFFEE = bytes.fromhex("c0ffeec0ffeec0ffeec0ffeec0ffee11")
+
+    ciphertext = bytes(input_bytes[i] ^ COFFEE[i] for i in range(16))
+    plaintext = aes_ecb(key_bytes, ciphertext, "decrypt")
+
+    output = bytes_to_base64(plaintext)
+    return {"output": output}
+
+
+def aes_ecb(key: str, input: str, mode: str) -> str:
+    """
+    Encrypt a block using AES-ECB
+    """
+
+    cipher_aes_ecb = ciphers.Cipher(ciphers.algorithms.AES(key), ciphers.modes.ECB())
+
+    match mode:
+        case "encrypt":
+            encryptor = cipher_aes_ecb.encryptor()
+            return encryptor.update(input) + encryptor.finalize()
+        case "decrypt":
+            decryptor = cipher_aes_ecb.decryptor()
+            return decryptor.update(input) + decryptor.finalize()
+        case _:
+            raise ValueError("Invalid mode")
+    pass
