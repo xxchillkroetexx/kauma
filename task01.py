@@ -56,7 +56,7 @@ def poly2block_xex(coefficients: list) -> bytes:
         bit_index = coeff % 8
         block[byte_index] = set_bit(block[byte_index], bit_index)
 
-    return mask_bytes(block, b"\xff" * 16)
+    return bytes(mask_bytes(block, b"\xff" * 16))
 
 
 def block2poly(args: dict) -> list:
@@ -97,24 +97,24 @@ def block2poly_xex(block: bytes) -> list:
     return coefficients
 
 
-def gfmul(args: dict) -> dict:
+def gfmul(args: dict) -> bytes:
     """
     Multiply two numbers in GF(2^128)
 
     args: dictionary containing the semantic, a and b
 
-    returns: dictionary containing the product
+    returns: bytes of the product
     """
 
     match args["semantic"]:
         case "xex":
-            return gfmul_xex(args)
+            return gfmul_xex(a=base64_to_bytes(args["a"]), b=base64_to_bytes(args["b"]))
         case _:
             raise ValueError("Invalid semantic")
     pass
 
 
-def gfmul_xex(args: dict) -> bytes:
+def gfmul_xex(a: bytes, b: bytes) -> bytes:
     """
     Multiply two numbers in GF(2^128) using XEX mode
 
@@ -124,11 +124,8 @@ def gfmul_xex(args: dict) -> bytes:
     """
     minimal_polynomial = (1 << 128) | (1 << 7) | (1 << 2) | (1 << 1) | 1
 
-    a_bytes = base64_to_bytes(args["a"])
-    b_bytes = base64_to_bytes(args["b"])
-
-    a = int.from_bytes(a_bytes, "little")
-    b = int.from_bytes(b_bytes, "little")
+    a = int.from_bytes(a, "little")
+    b = int.from_bytes(b, "little")
 
     product = gf_mult_polynomial(a, b, minimal_polynomial)
 
@@ -192,3 +189,77 @@ def sea128_decrypt(input: bytes, key: bytes) -> bytes:
     plaintext = aes_ecb(input=ciphertext, key=key, mode="decrypt")
 
     return plaintext
+
+
+def full_disc_encryption(args: dict) -> bytes:
+    """
+    Full disk encryption with XEX using SEA128
+
+    args: dictionary containing the mode, tweak, key and input
+
+    returns: bytes of the output
+    """
+    mode = args["mode"]
+    match mode:
+        case "encrypt":
+            return xex(
+                tweak=base64_to_bytes(args["tweak"]),
+                key=base64_to_bytes(args["key"]),
+                input=base64_to_bytes(args["input"]),
+                mode="encrypt",
+            )
+        case "decrypt":
+            return xex(
+                tweak=base64_to_bytes(args["tweak"]),
+                key=base64_to_bytes(args["key"]),
+                input=base64_to_bytes(args["input"]),
+                mode="decrypt",
+            )
+        case _:
+            raise ValueError("Invalid mode")
+    pass
+
+
+def xex(tweak: bytes, key: bytes, input: bytes, mode: str) -> bytes:
+    """
+    Encrypt/Decrypt a block using XEX mode
+
+    tweak: tweak in bytes
+    key: key in bytes
+    input: input block in bytes
+    mode: "encrypt" or "decrypt"
+
+    returns: bytes of the output
+    """
+    key1 = key[:16]
+    key2 = key[16:]
+
+    ALPHA = poly2block_xex([1])
+
+    tweaked_key2 = sea128_encrypt(input=tweak, key=key2)
+    out_blocks = []
+
+    for block_index in range(0, len(input), 16):
+        input_block = input[block_index : block_index + 16]
+
+        input_block = bytes(input_block[i] ^ tweaked_key2[i] for i in range(16))
+
+        match mode:
+            case "encrypt":
+                out_block = sea128_encrypt(input_block, key1)
+            case "decrypt":
+                out_block = sea128_decrypt(input_block, key1)
+            case _:
+                raise ValueError("Invalid mode")
+
+        # xor tweaked_key2
+        out_block = bytes(out_block[i] ^ tweaked_key2[i] for i in range(16))
+        out_blocks.append(out_block)
+
+        if block_index + 16 < len(input):
+            # tweaked_key2 gf_mul block_index
+            tweaked_key2 = gfmul_xex(a=tweaked_key2, b=ALPHA)
+        pass
+
+    out_blocks = b"".join(out_blocks)
+    return out_blocks

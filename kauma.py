@@ -53,6 +53,11 @@ def evaluate_testcase(testcase: dict) -> dict:
                 return {"output": bytes_to_base64(sea128(testcase["arguments"]))}
             except ValueError as e:
                 raise ValueError(f"Error in sea128: {e}")
+        case "xex":
+            try:
+                return {"output": bytes_to_base64(full_disc_encryption(testcase["arguments"]))}
+            except ValueError as e:
+                raise ValueError(f"Error in block2poly: {e}")
 
         case _:
             raise ValueError("Invalid action")
