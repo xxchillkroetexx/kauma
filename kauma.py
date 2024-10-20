@@ -4,7 +4,10 @@ import argparse
 from task01 import *
 
 
-def evaluate_testcases(testcase_json):
+def evaluate_testcases(testcase_json: dict) -> dict:
+    """
+    Evaluate all testcases and return the results
+    """
     responses = {}
 
     for testcase in testcase_json["testcases"]:
@@ -20,37 +23,37 @@ def evaluate_testcases(testcase_json):
     return responses
 
 
-def evaluate_testcase(testcase):
+def evaluate_testcase(testcase: dict) -> dict:
     """
     Evaluate a single testcase and return the result
     """
 
     match testcase["action"]:
         case "add_numbers":
-            return add_numbers(testcase["arguments"])
+            return {"sum": add_numbers(testcase["arguments"])}
         case "subtract_numbers":
-            return subtract_numbers(testcase["arguments"])
+            return {"difference": subtract_numbers(testcase["arguments"])}
         case "poly2block":
             try:
-                return poly2block(testcase["arguments"])
+                return {"block": bytes_to_base64(poly2block(testcase["arguments"]))}
             except ValueError as e:
                 raise ValueError(f"Error in poly2block: {e}")
         case "block2poly":
             try:
-                return block2poly(testcase["arguments"])
+                return {"coefficients": block2poly(testcase["arguments"])}
             except ValueError as e:
                 raise ValueError(f"Error in block2poly: {e}")
         case "gfmul":
             try:
-                return gfmul(testcase["arguments"])
+                return {"product": bytes_to_base64(gfmul(testcase["arguments"]))}
             except ValueError as e:
                 raise ValueError(f"Error in gfmul: {e}")
         case "sea128":
             try:
-                return sea128(testcase["arguments"])
+                return {"output": bytes_to_base64(sea128(testcase["arguments"]))}
             except ValueError as e:
                 raise ValueError(f"Error in sea128: {e}")
-        
+
         case _:
             raise ValueError("Invalid action")
     pass

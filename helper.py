@@ -14,7 +14,7 @@ def set_bit(self: int, bit_index: int) -> int:
     return self
 
 
-def mask_bytes(bytestr: str, mask: str) -> str:
+def mask_bytes(bytestr: bytes, mask: bytes) -> bytes:
     """
     Mask a byte string
 
@@ -28,7 +28,7 @@ def mask_bytes(bytestr: str, mask: str) -> str:
     return bytestr
 
 
-def bytes_to_base64(bytestr: str) -> str:
+def bytes_to_base64(bytestr: bytes) -> str:
     """
     Convert a byte string to a base64 encoded string
 
@@ -39,7 +39,7 @@ def bytes_to_base64(bytestr: str) -> str:
     return base64.b64encode(bytestr).decode()
 
 
-def base64_to_bytes(b64str: str) -> str:
+def base64_to_bytes(b64str: str) -> bytes:
     """
     Convert a base64 encoded string to a byte string
 
@@ -69,15 +69,15 @@ def gf_mult_polynomial(a: int, b: int, minimal_polynomial: int) -> int:
     return result
 
 
-def aes_ecb(input: str, key: str, mode: str) -> str:
+def aes_ecb(input: bytes, key: bytes, mode: str) -> bytes:
     """
     Encrypt a block using AES-ECB
 
-    input: base64 encoded input block
-    key: base64 encoded key
+    input: input block
+    key: key
     mode: "encrypt" or "decrypt"
 
-    returns: base64 encoded ciphertext
+    returns: the ciphertext
     """
 
     cipher_aes_ecb = ciphers.Cipher(ciphers.algorithms.AES(key), ciphers.modes.ECB())

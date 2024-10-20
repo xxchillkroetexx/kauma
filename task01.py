@@ -8,48 +8,46 @@ from helper import (
 )
 
 
-def add_numbers(args: dict) -> dict:
+def add_numbers(args: dict) -> int:
     """
     Add two numbers
     """
 
-    return {"sum": args["number1"] + args["number2"]}
+    return args["number1"] + args["number2"]
 
 
-def subtract_numbers(args: dict) -> dict:
+def subtract_numbers(args: dict) -> int:
     """
     Subtract two numbers
     """
 
-    return {"difference": args["number1"] - args["number2"]}
+    return args["number1"] - args["number2"]
 
 
-def poly2block(args: dict) -> dict:
+def poly2block(args: dict) -> bytes:
     """
     Convert a polynom to a block
 
     args: dictionary containing the semantic and the polynom coefficients
 
-    returns: dictionary containing the block
+    returns: bytes of the block
     """
     mode = args["semantic"]
     match mode:
         case "xex":
-            return xex_polynom(args["coefficients"])
+            return poly2block_xex(args["coefficients"])
         case _:
             raise ValueError("Invalid semantic")
     pass
 
-    return {"block": args["polygon"]}
 
-
-def xex_polynom(coefficients: list) -> dict:
+def poly2block_xex(coefficients: list) -> bytes:
     """
     convert a polynom to a 16 byte block using XEX mode
 
     coefficients: list of coefficients
 
-    returns: dictionary containing the block
+    returns: bytes of the block
     """
     block = bytearray(16)
 
@@ -58,48 +56,45 @@ def xex_polynom(coefficients: list) -> dict:
         bit_index = coeff % 8
         block[byte_index] = set_bit(block[byte_index], bit_index)
 
-    block = mask_bytes(block, b"\xff" * 16)
-
-    return {"block": bytes_to_base64(block)}
+    return mask_bytes(block, b"\xff" * 16)
 
 
-def block2poly(args: dict) -> dict:
+def block2poly(args: dict) -> list:
     """
     Convert a 16 byte block to a polynom
 
     args: dictionary containing the semantic and the block
 
-    returns: dictionary containing the coefficients
+    returns: list of coefficients
     """
     mode = args["semantic"]
     match mode:
         case "xex":
-            return xex_block(args["block"])
+            try:
+                return block2poly_xex(base64_to_bytes(args["block"]))
+            except ValueError as e:
+                raise ValueError(f"Error in block2poly: {e}")
         case _:
             raise ValueError("Invalid semantic")
     pass
 
 
-def xex_block(block: str) -> dict:
+def block2poly_xex(block: bytes) -> list:
     """
     convert a 16 byte block to a polynom using XEX mode
 
-    block: base64 encoded block
+    block: bytes of the block
 
-    returns: dictionary containing the coefficients
+    returns: list of coefficients
     """
     coefficients = []
-    try:
-        block = base64_to_bytes(block)
-    except Exception as e:
-        raise ValueError(f"Invalid block: {e}")
 
     for byte_index in range(16):
         for bit_index in range(8):
             if block[byte_index] & (1 << bit_index):
                 coefficients.append(byte_index * 8 + bit_index)
 
-    return {"coefficients": coefficients}
+    return coefficients
 
 
 def gfmul(args: dict) -> dict:
@@ -119,13 +114,13 @@ def gfmul(args: dict) -> dict:
     pass
 
 
-def gfmul_xex(args: dict) -> dict:
+def gfmul_xex(args: dict) -> bytes:
     """
     Multiply two numbers in GF(2^128) using XEX mode
 
     args: dictionary containing a and b
 
-    returns: dictionary containing the product
+    returns: bytes of the product
     """
     minimal_polynomial = (1 << 128) | (1 << 7) | (1 << 2) | (1 << 1) | 1
 
@@ -137,68 +132,63 @@ def gfmul_xex(args: dict) -> dict:
 
     product = gf_mult_polynomial(a, b, minimal_polynomial)
 
-    return {"product": bytes_to_base64(product.to_bytes(16, "little"))}
+    return product.to_bytes(16, "little")
 
 
-def sea128(args: dict) -> dict:
+def sea128(args: dict) -> bytes:
     """
-    Encrypt or decrypt a block using SEA128
+    Encrypt or decrypt a block using SEA128.
 
-    args: dictionary containing the mode, input and key
+    args: dictionary containing the mode, key and input
 
-    returns: dictionary containing the output
+    returns: bytes of the output
     """
     mode = args["mode"]
     match mode:
         case "encrypt":
-            return sea128_encrypt(key=args["key"], input=args["input"])
+            return sea128_encrypt(
+                key=base64_to_bytes(args["key"]), input=base64_to_bytes(args["input"])
+            )
         case "decrypt":
-            return sea128_decrypt(key=args["key"], input=args["input"])
+            return sea128_decrypt(
+                key=base64_to_bytes(args["key"]), input=base64_to_bytes(args["input"])
+            )
         case _:
             raise ValueError("Invalid mode")
     pass
 
 
-def sea128_encrypt(input: str, key: str) -> dict:
+def sea128_encrypt(input: bytes, key: bytes) -> bytes:
     """
     Encrypt a block using SEA128
     S_K(P) = E_K(P) XOR c0ffeec0ffeec0ffeec0ffeec0ffee11
 
-    input: base64 encoded input block
-    key: base64 encoded key
+    input: input block in bytes
+    key: key in bytes
 
-    returns: base64 encoded ciphertext
+    returns: bytes of the ciphertext
     """
-    input_bytes = base64_to_bytes(input)
-    key_bytes = base64_to_bytes(key)
-
     COFFEE = bytes.fromhex("c0ffeec0ffeec0ffeec0ffeec0ffee11")
 
-    ciphertext = aes_ecb(input=input_bytes, key=key_bytes, mode="encrypt")
+    ciphertext = aes_ecb(input=input, key=key, mode="encrypt")
     ciphertext = bytes(ciphertext[i] ^ COFFEE[i] for i in range(16))
 
-    output = bytes_to_base64(ciphertext)
-    return {"output": output}
+    return ciphertext
 
 
-def sea128_decrypt(input: str, key: str) -> dict:
+def sea128_decrypt(input: bytes, key: bytes) -> bytes:
     """
     Encrypt a block using SEA128
     S_K(P) = E_K(P) XOR c0ffeec0ffeec0ffeec0ffeec0ffee11
 
-    input: base64 encoded input block
-    key: base64 encoded key
+    input: input block in bytes
+    key: key in bytes
 
-    returns: base64 encoded plaintext
+    returns: bytes of the plaintext
     """
-    input_bytes = base64_to_bytes(input)
-    key_bytes = base64_to_bytes(key)
-
     COFFEE = bytes.fromhex("c0ffeec0ffeec0ffeec0ffeec0ffee11")
 
-    ciphertext = bytes(input_bytes[i] ^ COFFEE[i] for i in range(16))
-    plaintext = aes_ecb(input=ciphertext, key=key_bytes, mode="decrypt")
+    ciphertext = bytes(input[i] ^ COFFEE[i] for i in range(16))
+    plaintext = aes_ecb(input=ciphertext, key=key, mode="decrypt")
 
-    output = bytes_to_base64(plaintext)
-    return {"output": output}
-
+    return plaintext
