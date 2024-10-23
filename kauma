@@ -1,0 +1,16 @@
+#!/bin/bash
+
+export ENVIRONMENT=prod
+
+if [ "$#" -ne 1 ]; then
+    echo "Usage: ./kauma [path to file]"
+    exit 1
+fi
+
+SCRIPT_DIR=$(dirname "$0")
+
+if [ -z "$SCRIPT_DIR" ] || [ "$SCRIPT_DIR" == "." ]; then
+    SCRIPT_DIR=$(pwd)
+fi
+
+python3 "$SCRIPT_DIR/kauma.py" "$1"
