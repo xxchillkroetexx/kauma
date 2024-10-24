@@ -55,7 +55,11 @@ def evaluate_testcase(testcase: dict) -> dict:
                 raise ValueError(f"Error in sea128: {e}")
         case "xex":
             try:
-                return {"output": bytes_to_base64(full_disc_encryption(testcase["arguments"]))}
+                return {
+                    "output": bytes_to_base64(
+                        full_disc_encryption(testcase["arguments"])
+                    )
+                }
             except ValueError as e:
                 raise ValueError(f"Error in block2poly: {e}")
 
@@ -64,8 +68,12 @@ def evaluate_testcase(testcase: dict) -> dict:
     pass
 
 
-if __name__ == "__main__":
+def main():
+    """
+    Main function
 
+    Parse the arguments and evaluate the testcases
+    """
     parser = argparse.ArgumentParser(description="evaluate testcases from json file")
     parser.add_argument("json_file", type=str, help="json file containing testcases")
     args = parser.parse_args()
@@ -73,4 +81,8 @@ if __name__ == "__main__":
     with open(args.json_file, "r") as f:
         testcase_json = json.load(f)
 
-    print(evaluate_testcases(testcase_json))
+    print(json.dumps(evaluate_testcases(testcase_json)))
+
+
+if __name__ == "__main__":
+    main()
