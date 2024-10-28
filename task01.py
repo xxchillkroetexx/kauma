@@ -1,8 +1,7 @@
 from helper import (
-    aes_ecb,
+    SEA128,
     gf_mult_polynomial,
     set_bit,
-    bytes_to_base64,
     mask_bytes,
     base64_to_bytes,
 )
@@ -94,6 +93,8 @@ def block2poly_xex(block: bytes) -> list:
             if block[byte_index] & (1 << bit_index):
                 coefficients.append(byte_index * 8 + bit_index)
 
+    coefficients.sort()
+
     return coefficients
 
 
@@ -141,54 +142,15 @@ def sea128(args: dict) -> bytes:
     returns: bytes of the output
     """
     mode = args["mode"]
+    sea128 = SEA128(key=base64_to_bytes(args["key"]))
     match mode:
         case "encrypt":
-            return sea128_encrypt(
-                key=base64_to_bytes(args["key"]), input=base64_to_bytes(args["input"])
-            )
+            return sea128.encrypt(input=base64_to_bytes(args["input"]))
         case "decrypt":
-            return sea128_decrypt(
-                key=base64_to_bytes(args["key"]), input=base64_to_bytes(args["input"])
-            )
+            return sea128.decrypt(input=base64_to_bytes(args["input"]))
         case _:
             raise ValueError("Invalid mode")
     pass
-
-
-def sea128_encrypt(input: bytes, key: bytes) -> bytes:
-    """
-    Encrypt a block using SEA128
-    S_K(P) = E_K(P) XOR c0ffeec0ffeec0ffeec0ffeec0ffee11
-
-    input: input block in bytes
-    key: key in bytes
-
-    returns: bytes of the ciphertext
-    """
-    COFFEE = bytes.fromhex("c0ffeec0ffeec0ffeec0ffeec0ffee11")
-
-    ciphertext = aes_ecb(input=input, key=key, mode="encrypt")
-    ciphertext = bytes(ciphertext[i] ^ COFFEE[i] for i in range(16))
-
-    return ciphertext
-
-
-def sea128_decrypt(input: bytes, key: bytes) -> bytes:
-    """
-    Encrypt a block using SEA128
-    S_K(P) = E_K(P) XOR c0ffeec0ffeec0ffeec0ffeec0ffee11
-
-    input: input block in bytes
-    key: key in bytes
-
-    returns: bytes of the plaintext
-    """
-    COFFEE = bytes.fromhex("c0ffeec0ffeec0ffeec0ffeec0ffee11")
-
-    ciphertext = bytes(input[i] ^ COFFEE[i] for i in range(16))
-    plaintext = aes_ecb(input=ciphertext, key=key, mode="decrypt")
-
-    return plaintext
 
 
 def full_disc_encryption(args: dict) -> bytes:
@@ -235,10 +197,10 @@ def xex(tweak: bytes, key: bytes, input: bytes, mode: str) -> bytes:
     key2 = key[16:]
 
     ALPHA = poly2block_xex([1])
-
-    tweaked_key2 = sea128_encrypt(input=tweak, key=key2)
+    tweaked_key2 = SEA128(key=key2).encrypt(input=tweak)
     out_blocks = []
 
+    sea = SEA128(key=key1)
     for block_index in range(0, len(input), 16):
         input_block = input[block_index : block_index + 16]
 
@@ -246,9 +208,9 @@ def xex(tweak: bytes, key: bytes, input: bytes, mode: str) -> bytes:
 
         match mode:
             case "encrypt":
-                out_block = sea128_encrypt(input_block, key1)
+                out_block = sea.encrypt(input_block)
             case "decrypt":
-                out_block = sea128_decrypt(input_block, key1)
+                out_block = sea.decrypt(input_block)
             case _:
                 raise ValueError("Invalid mode")
 

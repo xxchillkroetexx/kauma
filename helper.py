@@ -1,6 +1,44 @@
 import base64
 import cryptography.hazmat.primitives.ciphers as ciphers
 
+
+class SEA128:
+    def __init__(self, key: bytes):
+        self.key = key
+
+    def encrypt(self, input: bytes) -> bytes:
+        """
+        Encrypt a block using SEA128
+        S_K(P) = E_K(P) XOR c0ffeec0ffeec0ffeec0ffeec0ffee11
+
+        input: input block in bytes
+
+        returns: bytes of the ciphertext
+        """
+        COFFEE = bytes.fromhex("c0ffeec0ffeec0ffeec0ffeec0ffee11")
+
+        ciphertext = aes_ecb(input=input, key=self.key, mode="encrypt")
+        ciphertext = bytes(ciphertext[i] ^ COFFEE[i] for i in range(16))
+
+        return ciphertext
+
+    def decrypt(self, input: bytes) -> bytes:
+        """
+        Encrypt a block using SEA128
+        S_K(P) = E_K(P) XOR c0ffeec0ffeec0ffeec0ffeec0ffee11
+
+        input: input block in bytes
+
+        returns: bytes of the plaintext
+        """
+        COFFEE = bytes.fromhex("c0ffeec0ffeec0ffeec0ffeec0ffee11")
+
+        ciphertext = bytes(input[i] ^ COFFEE[i] for i in range(16))
+        plaintext = aes_ecb(input=ciphertext, key=self.key, mode="decrypt")
+
+        return plaintext
+
+
 def set_bit(self: int, bit_index: int) -> int:
     """
     Set a bit in a byte

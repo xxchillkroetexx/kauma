@@ -2,6 +2,7 @@ import json
 import argparse
 
 from task01 import *
+from helper import bytes_to_base64
 
 
 def evaluate_testcases(testcase_json: dict) -> dict:
