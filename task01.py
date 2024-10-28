@@ -35,6 +35,8 @@ def poly2block(args: dict) -> bytes:
     match mode:
         case "xex":
             return poly2block_xex(args["coefficients"])
+        case "gcm":
+            return poly2block_gcm(args["coefficients"])
         case _:
             raise ValueError("Invalid semantic")
     pass
@@ -58,6 +60,24 @@ def poly2block_xex(coefficients: list) -> bytes:
     return bytes(mask_bytes(block, b"\xff" * 16))
 
 
+def poly2block_gcm(coefficients: list) -> bytes:
+    """
+    convert a polynom to a 16 byte block using GCM mode
+
+    coefficients: list of coefficients
+
+    returns: bytes of the block
+    """
+    block = bytearray(16)
+
+    for coeff in coefficients:
+        byte_index = coeff // 8
+        bit_index = 7 - (coeff % 8)
+        block[byte_index] = set_bit(block[byte_index], bit_index)
+
+    return bytes(block)
+
+
 def block2poly(args: dict) -> list:
     """
     Convert a 16 byte block to a polynom
@@ -71,6 +91,11 @@ def block2poly(args: dict) -> list:
         case "xex":
             try:
                 return block2poly_xex(base64_to_bytes(args["block"]))
+            except ValueError as e:
+                raise ValueError(f"Error in block2poly: {e}")
+        case "gcm":
+            try:
+                return block2poly_gcm(base64_to_bytes(args["block"]))
             except ValueError as e:
                 raise ValueError(f"Error in block2poly: {e}")
         case _:
@@ -92,6 +117,26 @@ def block2poly_xex(block: bytes) -> list:
         for bit_index in range(8):
             if block[byte_index] & (1 << bit_index):
                 coefficients.append(byte_index * 8 + bit_index)
+
+    coefficients.sort()
+
+    return coefficients
+
+
+def block2poly_gcm(block: bytes) -> list:
+    """
+    convert a 16 byte block to a polynom using GCM mode
+
+    block: bytes of the block
+
+    returns: list of coefficients
+    """
+    coefficients = []
+
+    for byte_index in range(16):
+        for bit_index in range(8):
+            if block[byte_index] & (1 << bit_index):
+                coefficients.append(byte_index * 8 + 7 - bit_index)
 
     coefficients.sort()
 
