@@ -1,6 +1,6 @@
 from helper import (
+    GFMUL,
     SEA128,
-    gf_mult_polynomial,
     set_bit,
     mask_bytes,
     base64_to_bytes,
@@ -152,30 +152,15 @@ def gfmul(args: dict) -> bytes:
     returns: bytes of the product
     """
 
+    mul = GFMUL()
     match args["semantic"]:
         case "xex":
-            return gfmul_xex(a=base64_to_bytes(args["a"]), b=base64_to_bytes(args["b"]))
+            return mul.xex(a=base64_to_bytes(args["a"]), b=base64_to_bytes(args["b"]))
+        case "gcm":
+            return mul.gcm(a=base64_to_bytes(args["a"]), b=base64_to_bytes(args["b"]))
         case _:
             raise ValueError("Invalid semantic")
     pass
-
-
-def gfmul_xex(a: bytes, b: bytes) -> bytes:
-    """
-    Multiply two numbers in GF(2^128) using XEX mode
-
-    args: dictionary containing a and b
-
-    returns: bytes of the product
-    """
-    minimal_polynomial = (1 << 128) | (1 << 7) | (1 << 2) | (1 << 1) | 1
-
-    a = int.from_bytes(a, "little")
-    b = int.from_bytes(b, "little")
-
-    product = gf_mult_polynomial(a, b, minimal_polynomial)
-
-    return product.to_bytes(16, "little")
 
 
 def sea128(args: dict) -> bytes:
@@ -265,7 +250,7 @@ def xex(tweak: bytes, key: bytes, input: bytes, mode: str) -> bytes:
 
         if block_index + 16 < len(input):
             # tweaked_key2 gf_mul block_index
-            tweaked_key2 = gfmul_xex(a=tweaked_key2, b=ALPHA)
+            tweaked_key2 = GFMUL().xex(a=tweaked_key2, b=ALPHA)
         pass
 
     out_blocks = b"".join(out_blocks)

@@ -39,6 +39,51 @@ class SEA128:
         return plaintext
 
 
+class GFMUL:
+    """
+    Class to multiply two numbers in GF(2^128)
+
+    minimal_polynomial: the non-reducable polynomial
+    """
+
+    def __init__(
+        self, minimal_polynomial: int = (1 << 128) | (1 << 7) | (1 << 2) | (1 << 1) | 1
+    ):
+        self.minimal_polynomial = minimal_polynomial
+
+    def xex(self, a: bytes, b: bytes) -> bytes:
+        """
+        Multiply two numbers in GF(2^128) using XEX mode
+
+        a: bytes of the first number
+        b: bytes of the second number
+
+        returns: bytes of the product
+        """
+        a = int.from_bytes(a, "little")
+        b = int.from_bytes(b, "little")
+
+        product = gf_mult_polynomial(a, b, self.minimal_polynomial)
+
+        return product.to_bytes(16, "little")
+
+    def gcm(self, a: bytes, b: bytes) -> bytes:
+        """
+        Multiply two numbers in GF(2^128) using GCM mode
+
+        a: bytes of the first number
+        b: bytes of the second number
+
+        returns: bytes of the product
+        """
+        a = int.from_bytes(a, "little")
+        b = int.from_bytes(b, "little")
+
+        product = gf_mult_polynomial(a, b, self.minimal_polynomial)
+
+        return product.to_bytes(16, "little")
+
+
 def set_bit(self: int, bit_index: int) -> int:
     """
     Set a bit in a byte
