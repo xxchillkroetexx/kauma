@@ -1,6 +1,6 @@
 from helper import (
+    GFMUL,
     SEA128,
-    gf_mult_polynomial,
     set_bit,
     mask_bytes,
     base64_to_bytes,
@@ -35,6 +35,8 @@ def poly2block(args: dict) -> bytes:
     match mode:
         case "xex":
             return poly2block_xex(args["coefficients"])
+        case "gcm":
+            return poly2block_gcm(args["coefficients"])
         case _:
             raise ValueError("Invalid semantic")
     pass
@@ -58,6 +60,24 @@ def poly2block_xex(coefficients: list) -> bytes:
     return bytes(mask_bytes(block, b"\xff" * 16))
 
 
+def poly2block_gcm(coefficients: list) -> bytes:
+    """
+    convert a polynom to a 16 byte block using GCM mode
+
+    coefficients: list of coefficients
+
+    returns: bytes of the block
+    """
+    block = bytearray(16)
+
+    for coeff in coefficients:
+        byte_index = coeff // 8
+        bit_index = 7 - (coeff % 8)
+        block[byte_index] = set_bit(block[byte_index], bit_index)
+
+    return bytes(block)
+
+
 def block2poly(args: dict) -> list:
     """
     Convert a 16 byte block to a polynom
@@ -71,6 +91,11 @@ def block2poly(args: dict) -> list:
         case "xex":
             try:
                 return block2poly_xex(base64_to_bytes(args["block"]))
+            except ValueError as e:
+                raise ValueError(f"Error in block2poly: {e}")
+        case "gcm":
+            try:
+                return block2poly_gcm(base64_to_bytes(args["block"]))
             except ValueError as e:
                 raise ValueError(f"Error in block2poly: {e}")
         case _:
@@ -98,6 +123,26 @@ def block2poly_xex(block: bytes) -> list:
     return coefficients
 
 
+def block2poly_gcm(block: bytes) -> list:
+    """
+    convert a 16 byte block to a polynom using GCM mode
+
+    block: bytes of the block
+
+    returns: list of coefficients
+    """
+    coefficients = []
+
+    for byte_index in range(16):
+        for bit_index in range(8):
+            if block[byte_index] & (1 << bit_index):
+                coefficients.append(byte_index * 8 + 7 - bit_index)
+
+    coefficients.sort()
+
+    return coefficients
+
+
 def gfmul(args: dict) -> bytes:
     """
     Multiply two numbers in GF(2^128)
@@ -107,30 +152,15 @@ def gfmul(args: dict) -> bytes:
     returns: bytes of the product
     """
 
+    mul = GFMUL()
     match args["semantic"]:
         case "xex":
-            return gfmul_xex(a=base64_to_bytes(args["a"]), b=base64_to_bytes(args["b"]))
+            return mul.xex(a=base64_to_bytes(args["a"]), b=base64_to_bytes(args["b"]))
+        case "gcm":
+            return mul.gcm(a=base64_to_bytes(args["a"]), b=base64_to_bytes(args["b"]))
         case _:
             raise ValueError("Invalid semantic")
     pass
-
-
-def gfmul_xex(a: bytes, b: bytes) -> bytes:
-    """
-    Multiply two numbers in GF(2^128) using XEX mode
-
-    args: dictionary containing a and b
-
-    returns: bytes of the product
-    """
-    minimal_polynomial = (1 << 128) | (1 << 7) | (1 << 2) | (1 << 1) | 1
-
-    a = int.from_bytes(a, "little")
-    b = int.from_bytes(b, "little")
-
-    product = gf_mult_polynomial(a, b, minimal_polynomial)
-
-    return product.to_bytes(16, "little")
 
 
 def sea128(args: dict) -> bytes:
@@ -220,7 +250,7 @@ def xex(tweak: bytes, key: bytes, input: bytes, mode: str) -> bytes:
 
         if block_index + 16 < len(input):
             # tweaked_key2 gf_mul block_index
-            tweaked_key2 = gfmul_xex(a=tweaked_key2, b=ALPHA)
+            tweaked_key2 = GFMUL().xex(a=tweaked_key2, b=ALPHA)
         pass
 
     out_blocks = b"".join(out_blocks)
