@@ -94,6 +94,8 @@ def block2poly_xex(block: bytes) -> list:
             if block[byte_index] & (1 << bit_index):
                 coefficients.append(byte_index * 8 + bit_index)
 
+    coefficients.sort()
+
     return coefficients
 
 
