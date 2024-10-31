@@ -1,5 +1,5 @@
-from helper import set_bit, mask_bytes, base64_to_bytes
-from classes import SEA128, GFMUL
+from classes import SEA128, GALOIS_FIELD_128
+from helper import block2poly_gcm, block2poly_xex, poly2block_gcm, poly2block_xex, base64_to_bytes
 
 
 def add_numbers(args: dict) -> int:
@@ -37,42 +37,6 @@ def poly2block(args: dict) -> bytes:
     pass
 
 
-def poly2block_xex(coefficients: list) -> bytes:
-    """
-    convert a polynom to a 16 byte block using XEX mode
-
-    coefficients: list of coefficients
-
-    returns: bytes of the block
-    """
-    block = bytearray(16)
-
-    for coeff in coefficients:
-        byte_index = coeff // 8
-        bit_index = coeff % 8
-        block[byte_index] = set_bit(block[byte_index], bit_index)
-
-    return bytes(mask_bytes(block, b"\xff" * 16))
-
-
-def poly2block_gcm(coefficients: list) -> bytes:
-    """
-    convert a polynom to a 16 byte block using GCM mode
-
-    coefficients: list of coefficients
-
-    returns: bytes of the block
-    """
-    block = bytearray(16)
-
-    for coeff in coefficients:
-        byte_index = coeff // 8
-        bit_index = 7 - (coeff % 8)
-        block[byte_index] = set_bit(block[byte_index], bit_index)
-
-    return bytes(block)
-
-
 def block2poly(args: dict) -> list:
     """
     Convert a 16 byte block to a polynom
@@ -98,46 +62,6 @@ def block2poly(args: dict) -> list:
     pass
 
 
-def block2poly_xex(block: bytes) -> list:
-    """
-    convert a 16 byte block to a polynom using XEX mode
-
-    block: bytes of the block
-
-    returns: list of coefficients
-    """
-    coefficients = []
-
-    for byte_index in range(16):
-        for bit_index in range(8):
-            if block[byte_index] & (1 << bit_index):
-                coefficients.append(byte_index * 8 + bit_index)
-
-    coefficients.sort()
-
-    return coefficients
-
-
-def block2poly_gcm(block: bytes) -> list:
-    """
-    convert a 16 byte block to a polynom using GCM mode
-
-    block: bytes of the block
-
-    returns: list of coefficients
-    """
-    coefficients = []
-
-    for byte_index in range(16):
-        for bit_index in range(8):
-            if block[byte_index] & (1 << bit_index):
-                coefficients.append(byte_index * 8 + 7 - bit_index)
-
-    coefficients.sort()
-
-    return coefficients
-
-
 def gfmul(args: dict) -> bytes:
     """
     Multiply two numbers in GF(2^128)
@@ -147,12 +71,12 @@ def gfmul(args: dict) -> bytes:
     returns: bytes of the product
     """
 
-    mul = GFMUL()
+    mul = GALOIS_FIELD_128()
     match args["semantic"]:
         case "xex":
-            return mul.xex(a=base64_to_bytes(args["a"]), b=base64_to_bytes(args["b"]))
+            return mul.multiply(a=base64_to_bytes(args["a"]), b=base64_to_bytes(args["b"]))
         case "gcm":
-            return mul.gcm(a=base64_to_bytes(args["a"]), b=base64_to_bytes(args["b"]))
+            return mul.multiply(a=base64_to_bytes(args["a"]), b=base64_to_bytes(args["b"]))
         case _:
             raise ValueError("Invalid semantic")
     pass
@@ -245,7 +169,7 @@ def xex(tweak: bytes, key: bytes, input: bytes, mode: str) -> bytes:
 
         if block_index + 16 < len(input):
             # tweaked_key2 gf_mul block_index
-            tweaked_key2 = GFMUL().xex(a=tweaked_key2, b=ALPHA)
+            tweaked_key2 = GALOIS_FIELD_128().multiply(a=tweaked_key2, b=ALPHA)
         pass
 
     out_blocks = b"".join(out_blocks)

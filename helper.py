@@ -169,3 +169,93 @@ def split_blocks(bytestr: bytes, block_size: int) -> list[bytes]:
     returns: a list of blocks
     """
     return [bytestr[i : i + block_size] for i in range(0, len(bytestr), block_size)]
+
+
+def block2poly_xex(block: bytes) -> list:
+    """
+    convert a 16 byte block to a polynom using XEX mode
+
+    block: bytes of the block
+
+    returns: list of coefficients
+    """
+    coefficients = []
+
+    for byte_index in range(len(block)):
+        for bit_index in range(8):
+            if block[byte_index] & (1 << bit_index):
+                coefficients.append(byte_index * 8 + bit_index)
+
+    coefficients.sort()
+
+    return coefficients
+
+
+def block2poly_gcm(block: bytes) -> list:
+    """
+    convert a 16 byte block to a polynom using GCM mode
+
+    block: bytes of the block
+
+    returns: list of coefficients
+    """
+    coefficients = []
+
+    for byte_index in range(16):
+        for bit_index in range(8):
+            if block[byte_index] & (1 << bit_index):
+                coefficients.append(byte_index * 8 + 7 - bit_index)
+
+    coefficients.sort()
+
+    return coefficients
+
+
+def poly2block_xex(coefficients: list) -> bytes:
+    """
+    convert a polynom to a 16 byte block using XEX mode
+
+    coefficients: list of coefficients
+
+    returns: bytes of the block
+    """
+    block = bytearray(16)
+
+    for coeff in coefficients:
+        byte_index = coeff // 8
+        bit_index = coeff % 8
+        block[byte_index] = set_bit(block[byte_index], bit_index)
+
+    return bytes(mask_bytes(block, b"\xff" * 16))
+
+
+def poly2block_gcm(coefficients: list) -> bytes:
+    """
+    convert a polynom to a 16 byte block using GCM mode
+
+    coefficients: list of coefficients
+
+    returns: bytes of the block
+    """
+    block = bytearray(16)
+
+    for coeff in coefficients:
+        byte_index = coeff // 8
+        bit_index = 7 - (coeff % 8)
+        block[byte_index] = set_bit(block[byte_index], bit_index)
+
+    return bytes(block)
+
+
+def xex_to_gcm(block: bytes) -> bytes:
+    """
+    Convert a block from XEX mode to GCM mode
+
+    block: the block in XEX mode
+
+    returns: the block in GCM mode
+    """
+    print(len(block))
+    poly = block2poly_xex(block)
+    print(poly2block_gcm(poly))
+    return poly2block_gcm(poly)

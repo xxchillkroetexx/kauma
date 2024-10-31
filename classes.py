@@ -1,5 +1,5 @@
 import socket
-from helper import aes_ecb, bytes_to_base64, gf_mult_polynomial, split_blocks, xor_bytes
+from helper import aes_ecb, bytes_to_base64, gf_mult_polynomial, split_blocks, xex_to_gcm, xor_bytes
 
 
 class SEA128:
@@ -39,7 +39,7 @@ class SEA128:
         return plaintext
 
 
-class GFMUL:
+class GALOIS_FIELD_128:
     """
     Class to multiply two numbers in GF(2^128)
 
@@ -49,25 +49,9 @@ class GFMUL:
     def __init__(self, minimal_polynomial: int = (1 << 128) | (1 << 7) | (1 << 2) | (1 << 1) | 1):
         self.minimal_polynomial = minimal_polynomial
 
-    def xex(self, a: bytes, b: bytes) -> bytes:
+    def multiply(self, a: bytes, b: bytes) -> bytes:
         """
-        Multiply two numbers in GF(2^128) using XEX mode
-
-        a: bytes of the first number
-        b: bytes of the second number
-
-        returns: bytes of the product
-        """
-        a = int.from_bytes(a, "little")
-        b = int.from_bytes(b, "little")
-
-        product = gf_mult_polynomial(a, b, self.minimal_polynomial)
-
-        return product.to_bytes(16, "little")
-
-    def gcm(self, a: bytes, b: bytes) -> bytes:
-        """
-        Multiply two numbers in GF(2^128) using GCM mode
+        Multiply two numbers in GF(2^128)
 
         a: bytes of the first number
         b: bytes of the second number
@@ -169,7 +153,7 @@ class GCM_CRYPT:
             # Y_0 = nonce || ctr 1
             # Y_n = nonce || ctr n+1
             Y.append(self.nonce + i.to_bytes(Y_len, "big"))
-            
+
         match self.algorithm:
             case "aes128":
                 # *for auth_key H
@@ -179,12 +163,9 @@ class GCM_CRYPT:
                 # *Block Encrypt
                 # CT_1 = ecb_K(Y_1) ^ PT_1
                 # CT_n = ecb_K(Y_n) ^ PT_n
-                for pt_block in plaintext_blocks:
-                    xorblock = aes_ecb(input=pt_block, key=self.key, mode=mode)
-                    ct_block = xor_bytes(xorblock, pt_block)
-                    print(pt_block.hex())
-                    print(xorblock.hex())
-                    print(ct_block.hex())
+                for i in range(len(plaintext_blocks)):
+                    xorblock = aes_ecb(input=Y[i + 1], key=self.key, mode=mode)
+                    ct_block = xor_bytes(xorblock, plaintext_blocks[i])
                     ciphertext_blocks.append(ct_block)
 
             case "sea128":
@@ -196,35 +177,36 @@ class GCM_CRYPT:
                 # *Block Encrypt
                 # CT_1 = sea(Y_1) ^ PT_1
                 # CT_n = sea(Y_n) ^ PT_n
-                for pt_block in plaintext_blocks:
-                    xorblock = sea.encrypt(input=pt_block)
-                    ct_block = xor_bytes(xorblock, pt_block)
+                for i in range(len(plaintext_blocks)):
+                    xorblock = sea.encrypt(input=Y[i + 1])
+                    ct_block = xor_bytes(xorblock, plaintext_blocks[i])
                     ciphertext_blocks.append(ct_block)
 
             case _:
                 raise ValueError("Invalid algorithm")
 
+        ciphertext = b"".join(ciphertext_blocks)
+
         # *for GHASH
         # init_xor = 0000...0000
         init_xor = bytes(16)
         # init_xor = gfmul((ass_data ^ init_xor), H)
-        init_xor = GFMUL().gcm(a=xor_bytes(init_xor, ass_data), b=H)
+        init_xor = GALOIS_FIELD_128().multiply(a=xex_to_gcm(xor_bytes(init_xor, ass_data)), b=xex_to_gcm(H))
 
         # solange CT_blöcke:
         for ct_block in ciphertext_blocks:
             # init_xor = gfmul((CT_n ^ init_xor), H)
-            init_xor = GFMUL().gcm(a=xor_bytes(init_xor, ct_block), b=H)
+            init_xor = GALOIS_FIELD_128().multiply(a=xex_to_gcm(xor_bytes(init_xor, ct_block)), b=xex_to_gcm(H))
+
+        # L = bit_length(ass_data) || bit_length(ciphertext)
+        L = (len(ass_data) * 8).to_bytes(8, "big") + (len(ciphertext) * 8).to_bytes(8, "big")
 
         # ghash = gfmul((L ^ init_xor), H)
-        L = len(plaintext)
-        L = L.to_bytes(16, "big")
-        GHASH = GFMUL().gcm(a=xor_bytes(init_xor, L), b=H)
+        GHASH = GALOIS_FIELD_128().multiply(a=xex_to_gcm(xor_bytes(init_xor, L)), b=xex_to_gcm(H))
 
         # *for auth_tag
         # auth_tag = ecb_K(Y_0) ^ ghash
         auth_tag = xor_bytes(Y[0], GHASH)
-
-        ciphertext = b"".join(ciphertext_blocks)
 
         return {
             "ciphertext": bytes_to_base64(bytes(ciphertext)),
