@@ -1,10 +1,5 @@
-from helper import (
-    GFMUL,
-    SEA128,
-    set_bit,
-    mask_bytes,
-    base64_to_bytes,
-)
+from helper import set_bit, mask_bytes, base64_to_bytes
+from classes import SEA128, GFMUL
 
 
 def add_numbers(args: dict) -> int:

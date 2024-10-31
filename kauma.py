@@ -1,6 +1,7 @@
 import json
 import argparse
 
+from helper import bytes_to_base64
 from task01 import (
     add_numbers,
     subtract_numbers,
@@ -11,7 +12,6 @@ from task01 import (
     full_disc_encryption,
 )
 from task02 import gcm_encrypt, padding_oracle
-from helper import bytes_to_base64
 
 
 def evaluate_testcases(testcase_json: dict) -> dict:
@@ -22,9 +22,7 @@ def evaluate_testcases(testcase_json: dict) -> dict:
 
     for testcase in testcase_json["testcases"]:
         try:
-            responses[testcase] = evaluate_testcase(
-                testcase_json["testcases"][testcase]
-            )
+            responses[testcase] = evaluate_testcase(testcase_json["testcases"][testcase])
         except ValueError as e:
             raise ValueError(f"Error in testcase {testcase}: {e}")
 
@@ -65,11 +63,7 @@ def evaluate_testcase(testcase: dict) -> dict:
                 raise ValueError(f"Error in sea128: {e}")
         case "xex":
             try:
-                return {
-                    "output": bytes_to_base64(
-                        full_disc_encryption(testcase["arguments"])
-                    )
-                }
+                return {"output": bytes_to_base64(full_disc_encryption(testcase["arguments"]))}
             except ValueError as e:
                 raise ValueError(f"Error in block2poly: {e}")
         case "padding_oracle":
