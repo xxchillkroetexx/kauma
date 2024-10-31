@@ -1,7 +1,16 @@
 import json
 import argparse
 
-from task01 import *
+from task01 import (
+    add_numbers,
+    subtract_numbers,
+    poly2block,
+    block2poly,
+    gfmul,
+    sea128,
+    full_disc_encryption,
+)
+from task02 import gcm_encrypt, padding_oracle
 from helper import bytes_to_base64
 
 
@@ -63,7 +72,17 @@ def evaluate_testcase(testcase: dict) -> dict:
                 }
             except ValueError as e:
                 raise ValueError(f"Error in block2poly: {e}")
+        case "padding_oracle":
+            try:
+                return {"plaintext": padding_oracle(testcase["arguments"])}
+            except ValueError as e:
+                raise ValueError(f"Error in padding_oracle: {e}")
 
+        case "gcm_encrypt":
+            try:
+                return gcm_encrypt(testcase["arguments"])
+            except ValueError as e:
+                raise ValueError(f"Error in gcm_encrypt: {e}")
         case _:
             raise ValueError("Invalid action")
     pass

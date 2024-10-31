@@ -133,6 +133,18 @@ def base64_to_bytes(b64str: str) -> bytes:
     return base64.b64decode(b64str)
 
 
+def xor_bytes(a: bytes, b: bytes) -> bytes:
+    """
+    XOR two byte strings
+
+    a: the first byte string
+    b: the second byte string
+
+    returns: the XOR of the two byte strings
+    """
+    return bytes(x ^ y for x, y in zip(a, b))
+
+
 def carryless_xor(a: int, b: int) -> int:
     """
     Carryless XOR of two numbers
@@ -227,3 +239,15 @@ def aes_ecb(input: bytes, key: bytes, mode: str) -> bytes:
         case _:
             raise ValueError("Invalid mode")
     pass
+
+
+def split_blocks(bytestr: bytes, block_size: int) -> list[bytes]:
+    """
+    Split a byte string into blocks
+
+    bytestr: the byte string
+    block_size: the size of each block
+
+    returns: a list of blocks
+    """
+    return [bytestr[i : i + block_size] for i in range(0, len(bytestr), block_size)]
