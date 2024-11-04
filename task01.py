@@ -1,5 +1,11 @@
 from classes import SEA128, GALOIS_FIELD_128
-from helper import block2poly_gcm, block2poly_xex, poly2block_gcm, poly2block_xex, base64_to_bytes
+from helper import (
+    block2poly_gcm,
+    block2poly_xex,
+    poly2block_gcm,
+    poly2block_xex,
+    base64_to_bytes,
+)
 
 
 def add_numbers(args: dict) -> int:
@@ -70,16 +76,21 @@ def gfmul(args: dict) -> bytes:
 
     returns: bytes of the product
     """
-
-    mul = GALOIS_FIELD_128()
+    coefficients = [128, 7, 2, 1, 0]
+    a = base64_to_bytes(args["a"])
+    b = base64_to_bytes(args["b"])
+    a_int = int.from_bytes(a, "little")
+    b_int = int.from_bytes(b, "little")
     match args["semantic"]:
         case "xex":
-            return mul.multiply(a=base64_to_bytes(args["a"]), b=base64_to_bytes(args["b"]))
+            gf = GALOIS_FIELD_128(min_poly_coefficients=coefficients, mode="xex")
+            product = gf.multiply(a=a_int, b=b_int)
         case "gcm":
-            return mul.multiply(a=base64_to_bytes(args["a"]), b=base64_to_bytes(args["b"]))
+            gf = GALOIS_FIELD_128(min_poly_coefficients=coefficients, mode="gcm")
+            product = gf.multiply(a=a_int, b=b_int)
         case _:
             raise ValueError("Invalid semantic")
-    pass
+    return product.to_bytes(16, "little")
 
 
 def sea128(args: dict) -> bytes:
@@ -169,7 +180,9 @@ def xex(tweak: bytes, key: bytes, input: bytes, mode: str) -> bytes:
 
         if block_index + 16 < len(input):
             # tweaked_key2 gf_mul block_index
-            tweaked_key2 = GALOIS_FIELD_128().multiply(a=tweaked_key2, b=ALPHA)
+            tweaked_key2 = GALOIS_FIELD_128(min_poly_coefficients=[128, 7, 2, 1, 0], mode="xex").multiply(
+                a=int.from_bytes(tweaked_key2, "little"), b=int.from_bytes(ALPHA, "little")
+            )
         pass
 
     out_blocks = b"".join(out_blocks)

@@ -63,48 +63,6 @@ def xor_bytes(a: bytes, b: bytes) -> bytes:
     return bytes(x ^ y for x, y in zip(a, b))
 
 
-def reduce_polynomial(polynomial: int, minimal_polynomial: int) -> int:
-    """
-    Reduce a polynomial using the minimal polynomial
-
-    a: the polynomial
-    minimal_polynomial: the non-reducable polynomial
-
-    returns: the reduced polynomial
-    """
-    while polynomial.bit_length() >= minimal_polynomial.bit_length():
-        shift = polynomial.bit_length() - minimal_polynomial.bit_length()
-        polynomial ^= minimal_polynomial << shift
-        # a ^= minimal_polynomial << shift
-
-    return polynomial
-
-
-def gf_mult_polynomial(a: int, b: int, minimal_polynomial: int) -> int:
-    """
-    Multiply two numbers in GF(2^128) using multiply and reduce method
-
-    a: the first polynomial
-    b: the second polynomial
-    minimal_polynomial: the non-reducable polynomial
-
-    returns: the product
-    """
-
-    result = 0
-    while b:
-        if b & 1:
-            result ^= a
-        a <<= 1
-        b >>= 1
-        a = reduce_polynomial(polynomial=a, minimal_polynomial=minimal_polynomial)
-
-    # reduce the result one last time
-    result = reduce_polynomial(polynomial=result, minimal_polynomial=minimal_polynomial)
-
-    return result
-
-
 def aes_ecb(input: bytes, key: bytes, mode: str) -> bytes:
     """
     Encrypt a block using AES-ECB
@@ -236,3 +194,61 @@ def xex_to_gcm(block: bytes) -> bytes:
         reversed_block.append(reversed_byte)
 
     return bytes(reversed_block)
+
+
+def convert_to_general_poly(polynom: int, mode: str) -> int:
+    """
+    Convert a polynomial to a general polynomial
+
+    polynom: the polynomial
+    mode: "xex" or "gcm"
+
+    returns: the general polynomial
+    """
+    match mode:
+        case "xex":
+            # reorder the bytes of the polynomial so that the most left byte is now the most right byte
+            polynom = reverse_byte_order(polynom)
+            return polynom
+        case "gcm":
+            # reverse the bits of the polynomial
+            polynom = int(bin(polynom)[2:].zfill(128)[::-1], 2)
+            return polynom
+        case _:
+            raise ValueError("Invalid mode")
+
+
+def reverse_byte_order(data: int) -> int:
+    """
+    Convert the number to bytes (big-endian), reverse them, and convert back to an integer
+
+    data: the number to reverse
+
+    returns: the reversed number
+    """
+    # Calculate how many bytes are needed
+    byte_length = (data.bit_length() + 7) // 8
+    # Convert to bytes (big-endian)
+    data_bytes = data.to_bytes(byte_length, byteorder="big")
+    # Reverse the byte order
+    reversed_bytes = data_bytes[::-1]
+    # Convert back to integer
+    reversed_data = int.from_bytes(reversed_bytes, byteorder="big")
+
+    return reversed_data
+
+
+def coefficients_to_min_polynom(coefficients: list) -> int:
+    """
+    Convert a list of coefficients to a minimal polynomial
+
+    coefficients: list of coefficients
+
+    returns: the minimal polynomial
+    """
+    minimal_polynomial = 0
+
+    for coeff in coefficients:
+        minimal_polynomial |= 1 << coeff
+
+    return minimal_polynomial

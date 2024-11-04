@@ -72,11 +72,11 @@ def evaluate_testcase(testcase: dict) -> dict:
         #     except ValueError as e:
         #         raise ValueError(f"Error in padding_oracle: {e}")
 
-        case "gcm_encrypt":
-            try:
-                return gcm_encrypt(testcase["arguments"])
-            except ValueError as e:
-                raise ValueError(f"Error in gcm_encrypt: {e}")
+        # case "gcm_encrypt":
+        #     try:
+        #         return gcm_encrypt(testcase["arguments"])
+        #     except ValueError as e:
+        #         raise ValueError(f"Error in gcm_encrypt: {e}")
         case _:
             raise ValueError("Invalid action")
     pass
