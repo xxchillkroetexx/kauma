@@ -1,0 +1,86 @@
+{
+    "testcases": {
+        "b856d760-023d-4b00-bad2-15d2b6da22fe": {
+            "action": "add_numbers",
+            "arguments": {
+                "number1": 123,
+                "number2": 234
+            }
+        },
+        "254eaee7-05fd-4e0d-8292-9b658a852245": {
+            "action": "add_numbers",
+            "arguments": {
+                "number1": 333,
+                "number2": 444
+            }
+        },
+        "affbf4fc-4d2a-41e3-afe0-a79e1d174781": {
+            "action": "subtract_numbers",
+            "arguments": {
+                "number1": 999,
+                "number2": 121212
+            }
+        },
+        "b97899d5-f1fb-43b0-9454-12e70a2cafb5": {
+            "action": "poly2block",
+            "arguments": {
+                "semantic": "xex",
+                "coefficients": [
+                    12,
+                    127,
+                    9,
+                    0
+                ]
+            }
+        },
+        "34686cda-8f79-440a-8014-912035b0160c": {
+            "action": "block2poly",
+            "arguments": {
+                "semantic": "xex",
+                "block": "ARIAAAAAAAAAAAAAAAAAgA=="
+            }
+        },
+        "12a0efb4-4c1c-4a1b-9991-0f4b18e972dc": {
+            "action": "gfmul",
+            "arguments": {
+                "semantic": "xex",
+                "a": "ARIAAAAAAAAAAAAAAAAAgA==",
+                "b": "AgAAAAAAAAAAAAAAAAAAAA=="
+            }
+        },
+        "49ae334b-eb5f-441b-bb17-99e55df6e12d": {
+            "action": "sea128",
+            "arguments": {
+                "mode": "encrypt",
+                "key": "istDASeincoolerKEYrofg==",
+                "input": "yv66vvrO263eyviIiDNEVQ=="
+            }
+        },
+        "75dc0e06-f6ad-4d53-b9d7-d2ae6aec7873": {
+            "action": "sea128",
+            "arguments": {
+                "mode": "decrypt",
+                "key": "istDASeincoolerKEYrofg==",
+                "input": "D5FDo3iVBoBN9gVi9/MSKQ=="
+            }
+        },
+        "475242d2-8884-4a45-bc5a-850b54c6f734": {
+            "action": "xex",
+            "arguments": {
+                "mode": "encrypt",
+                "key": "B1ygNO/CyRYIUYhTSgoUysX5Y/wWLi4UiWaVeloUWs0=",
+                "tweak": "6VXORr+YYHrd2nVe0OlA+Q==",
+                "input": "/aOg4jMocLkBLkDLgkHYtFKc2L9jjyd2WXSSyxXQikpMY9Z RnsJE76e9dW9olZIW"
+            }
+        },
+        "8752497b-6ec4-4856-ace7-17d86133a52f": {
+            "action": "xex",
+            "arguments": {
+                "mode": "decrypt",
+                "key": "B1ygNO/CyRYIUYhTSgoUysX5Y/wWLi4UiWaVeloUWs0=",
+                "tweak": "6VXORr+YYHrd2nVe0OlA+Q==",
+                "input": "lr/ItaYGFXCtHhdPndE65yg7u/GIdM9wscABiiFOUH2Sbyc 2UFMlIRSMnZrYCW1a"
+            }
+        }
+    }
+}
