@@ -149,6 +149,9 @@ class GCM_CRYPT:
         mode = "encrypt"
         Y = list()
         Y_len = 16 - len(self.nonce)
+        # padd associated data with 0x00 right to 16 byte length
+        ass_data = ass_data.ljust(16, b"\x00")
+
         for i in range(1, len(plaintext_blocks) + 1 + 1):
             # Y_0 = nonce || ctr 1
             # Y_n = nonce || ctr n+1
@@ -158,7 +161,7 @@ class GCM_CRYPT:
             case "aes128":
                 # *for auth_key H
                 # H = ecb(000...000)
-                H = aes_ecb(input=bytes(16), key=self.key, mode=mode)
+                H = aes_ecb(input=bytes(b"\x00" * 16), key=self.key, mode=mode)
 
                 # *Block Encrypt
                 # CT_1 = ecb_K(Y_1) ^ PT_1
@@ -172,7 +175,7 @@ class GCM_CRYPT:
                 # *for auth_key H
                 sea = SEA128(key=self.key)
                 # H = sea(000...000)
-                H = sea.encrypt(input=bytes(16))
+                H = sea.encrypt(input=bytes(b"\x00" * 16))
 
                 # *Block Encrypt
                 # CT_1 = sea(Y_1) ^ PT_1
@@ -189,7 +192,7 @@ class GCM_CRYPT:
 
         # *for GHASH
         # init_xor = 0000...0000
-        init_xor = bytes(16)
+        init_xor = bytes(b"\x00" * 16)
         # init_xor = gfmul((ass_data ^ init_xor), H)
         init_xor = GALOIS_FIELD_128().multiply(a=xex_to_gcm(xor_bytes(init_xor, ass_data)), b=xex_to_gcm(H))
 

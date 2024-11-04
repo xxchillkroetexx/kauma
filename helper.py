@@ -255,7 +255,5 @@ def xex_to_gcm(block: bytes) -> bytes:
 
     returns: the block in GCM mode
     """
-    print(len(block))
     poly = block2poly_xex(block)
-    print(poly2block_gcm(poly))
     return poly2block_gcm(poly)
