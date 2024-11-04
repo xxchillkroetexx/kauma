@@ -66,11 +66,11 @@ def evaluate_testcase(testcase: dict) -> dict:
                 return {"output": bytes_to_base64(full_disc_encryption(testcase["arguments"]))}
             except ValueError as e:
                 raise ValueError(f"Error in block2poly: {e}")
-        case "padding_oracle":
-            try:
-                return {"plaintext": padding_oracle(testcase["arguments"])}
-            except ValueError as e:
-                raise ValueError(f"Error in padding_oracle: {e}")
+        # case "padding_oracle":
+        #     try:
+        #         return {"plaintext": padding_oracle(testcase["arguments"])}
+        #     except ValueError as e:
+        #         raise ValueError(f"Error in padding_oracle: {e}")
 
         case "gcm_encrypt":
             try:
