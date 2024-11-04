@@ -63,77 +63,6 @@ def xor_bytes(a: bytes, b: bytes) -> bytes:
     return bytes(x ^ y for x, y in zip(a, b))
 
 
-def carryless_xor(a: int, b: int) -> int:
-    """
-    Carryless XOR of two numbers
-
-    a: the first number
-    b: the second number
-
-    returns: the carryless XOR
-    """
-
-    bin_a = bin(a)[2:]
-    bin_b = bin(b)[2:]
-
-    # find the maximum length
-    max_len = max(len(bin_a), len(bin_b))
-
-    # Pad with zeros to make same length
-    bin_a = bin_a.zfill(max_len)
-    bin_b = bin_b.zfill(max_len)
-
-    # XOR the bits
-    result = ""
-    for bit_a, bit_b in zip(bin_a, bin_b):
-        result += str(int(bit_a) ^ int(bit_b))
-
-    # convert the result back to an integer
-    return int(result, 2)
-
-
-def reduce_polynomial(polynomial: int, minimal_polynomial: int) -> int:
-    """
-    Reduce a polynomial using the minimal polynomial
-
-    a: the polynomial
-    minimal_polynomial: the non-reducable polynomial
-
-    returns: the reduced polynomial
-    """
-    while polynomial.bit_length() >= minimal_polynomial.bit_length():
-        shift = polynomial.bit_length() - minimal_polynomial.bit_length()
-        polynomial = carryless_xor(a=polynomial, b=minimal_polynomial << shift)
-        # a ^= minimal_polynomial << shift
-
-    return polynomial
-
-
-def gf_mult_polynomial(a: int, b: int, minimal_polynomial: int) -> int:
-    """
-    Multiply two numbers in GF(2^128) using multiply and reduce method
-
-    a: the first polynomial
-    b: the second polynomial
-    minimal_polynomial: the non-reducable polynomial
-
-    returns: the product
-    """
-
-    result = 0
-    while b:
-        if b & 1:
-            result = carryless_xor(a=result, b=a)
-        a <<= 1
-        b >>= 1
-        a = reduce_polynomial(polynomial=a, minimal_polynomial=minimal_polynomial)
-
-    # reduce the result one last time
-    result = reduce_polynomial(polynomial=result, minimal_polynomial=minimal_polynomial)
-
-    return result
-
-
 def aes_ecb(input: bytes, key: bytes, mode: str) -> bytes:
     """
     Encrypt a block using AES-ECB
@@ -255,5 +184,46 @@ def xex_to_gcm(block: bytes) -> bytes:
 
     returns: the block in GCM mode
     """
-    poly = block2poly_xex(block)
-    return poly2block_gcm(poly)
+    reversed_block = bytearray(b"\x00" * 16)
+
+    for byte in block:
+        # reverse the bits in each byte
+        reversed_byte = 0
+        for i in range(8):
+            reversed_byte |= ((byte >> i) & 1) << (7 - i)
+        reversed_block.append(reversed_byte)
+
+    return bytes(reversed_block)
+
+
+def transform_gcm_general(polynom: int) -> int:
+    """
+    Transform a polynomial to a different mode
+
+    polynom: the polynomial
+    mode: the mode to transform to
+
+    returns: the transformed polynomial
+    """
+    # reverse the bits of the polynomial
+    reversed_polynom = 0
+    for i in range(128):
+        reversed_polynom |= ((polynom >> i) & 1) << (127 - i)
+
+    return reversed_polynom
+
+
+def coefficients_to_min_polynom(coefficients: list) -> int:
+    """
+    Convert a list of coefficients to a minimal polynomial
+
+    coefficients: list of coefficients
+
+    returns: the minimal polynomial
+    """
+    minimal_polynomial = 0
+
+    for coeff in coefficients:
+        minimal_polynomial |= 1 << coeff
+
+    return minimal_polynomial

@@ -1,5 +1,13 @@
 import socket
-from helper import aes_ecb, bytes_to_base64, gf_mult_polynomial, split_blocks, xex_to_gcm, xor_bytes
+from helper import (
+    aes_ecb,
+    bytes_to_base64,
+    coefficients_to_min_polynom,
+    transform_gcm_general,
+    split_blocks,
+    xex_to_gcm,
+    xor_bytes,
+)
 
 
 class SEA128:
@@ -46,24 +54,53 @@ class GALOIS_FIELD_128:
     minimal_polynomial: the non-reducable polynomial
     """
 
-    def __init__(self, minimal_polynomial: int = (1 << 128) | (1 << 7) | (1 << 2) | (1 << 1) | 1):
-        self.minimal_polynomial = minimal_polynomial
+    def __init__(self, min_poly_coefficients: list[int], mode: str):
+        self.mode = mode
+        self.minimal_polynomial = coefficients_to_min_polynom(min_poly_coefficients)
 
-    def multiply(self, a: bytes, b: bytes) -> bytes:
+    def multiply(self, a: int, b: int) -> int:
         """
         Multiply two numbers in GF(2^128)
 
-        a: bytes of the first number
-        b: bytes of the second number
+        a: the first polynomial
+        b: the second polynomial
 
-        returns: bytes of the product
+        returns: the product
         """
-        a = int.from_bytes(a, "little")
-        b = int.from_bytes(b, "little")
+        if self.mode == "gcm":
+            a = transform_gcm_general(polynom=a)
+            b = transform_gcm_general(polynom=b)
 
-        product = gf_mult_polynomial(a, b, self.minimal_polynomial)
+        result = 0
+        while b:
+            if b & 1:
+                result ^= a
+            a <<= 1
+            b >>= 1
+            a = self.reduce_polynomial(polynomial=a)
 
-        return product.to_bytes(16, "little")
+        # reduce the result one last time
+        result = self.reduce_polynomial(polynomial=result)
+
+        # convert the result back to gcm mode
+        if self.mode == "gcm":
+            result = transform_gcm_general(polynom=result)
+        return result
+
+    def reduce_polynomial(self, polynomial: int) -> int:
+        """
+        Reduce a polynomial using the minimal polynomial
+
+        a: the polynomial
+        minimal_polynomial: the non-reducable polynomial
+
+        returns: the reduced polynomial
+        """
+        while polynomial.bit_length() >= self.minimal_polynomial.bit_length():
+            shift = polynomial.bit_length() - self.minimal_polynomial.bit_length()
+            polynomial ^= self.minimal_polynomial << shift
+
+        return polynomial
 
 
 class PADDING_ORACLE:
