@@ -3,7 +3,7 @@ from helper import (
     aes_ecb,
     bytes_to_base64,
     coefficients_to_min_polynom,
-    convert_to_general_poly,
+    transform_gcm_general,
     split_blocks,
     xex_to_gcm,
     xor_bytes,
@@ -67,21 +67,24 @@ class GALOIS_FIELD_128:
 
         returns: the product
         """
-
-        a_gen = convert_to_general_poly(polynom=a, mode=self.mode)
-        b_gen = convert_to_general_poly(polynom=b, mode=self.mode)
+        if self.mode == "gcm":
+            a = transform_gcm_general(polynom=a)
+            b = transform_gcm_general(polynom=b)
 
         result = 0
-        while b_gen:
-            if b_gen & 1:
-                result ^= a_gen
-            a_gen <<= 1
-            b_gen >>= 1
-            a_gen = self.reduce_polynomial(polynomial=a_gen)
+        while b:
+            if b & 1:
+                result ^= a
+            a <<= 1
+            b >>= 1
+            a = self.reduce_polynomial(polynomial=a)
 
         # reduce the result one last time
         result = self.reduce_polynomial(polynomial=result)
 
+        # convert the result back to gcm mode
+        if self.mode == "gcm":
+            result = transform_gcm_general(polynom=result)
         return result
 
     def reduce_polynomial(self, polynomial: int) -> int:

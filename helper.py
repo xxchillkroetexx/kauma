@@ -196,46 +196,21 @@ def xex_to_gcm(block: bytes) -> bytes:
     return bytes(reversed_block)
 
 
-def convert_to_general_poly(polynom: int, mode: str) -> int:
+def transform_gcm_general(polynom: int) -> int:
     """
-    Convert a polynomial to a general polynomial
+    Transform a polynomial to a different mode
 
     polynom: the polynomial
-    mode: "xex" or "gcm"
+    mode: the mode to transform to
 
-    returns: the general polynomial
+    returns: the transformed polynomial
     """
-    match mode:
-        case "xex":
-            # reorder the bytes of the polynomial so that the most left byte is now the most right byte
-            polynom = reverse_byte_order(polynom)
-            return polynom
-        case "gcm":
-            # reverse the bits of the polynomial
-            polynom = int(bin(polynom)[2:].zfill(128)[::-1], 2)
-            return polynom
-        case _:
-            raise ValueError("Invalid mode")
+    # reverse the bits of the polynomial
+    reversed_polynom = 0
+    for i in range(128):
+        reversed_polynom |= ((polynom >> i) & 1) << (127 - i)
 
-
-def reverse_byte_order(data: int) -> int:
-    """
-    Convert the number to bytes (big-endian), reverse them, and convert back to an integer
-
-    data: the number to reverse
-
-    returns: the reversed number
-    """
-    # Calculate how many bytes are needed
-    byte_length = (data.bit_length() + 7) // 8
-    # Convert to bytes (big-endian)
-    data_bytes = data.to_bytes(byte_length, byteorder="big")
-    # Reverse the byte order
-    reversed_bytes = data_bytes[::-1]
-    # Convert back to integer
-    reversed_data = int.from_bytes(reversed_bytes, byteorder="big")
-
-    return reversed_data
+    return reversed_polynom
 
 
 def coefficients_to_min_polynom(coefficients: list) -> int:

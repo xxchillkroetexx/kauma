@@ -161,11 +161,19 @@ def xex(tweak: bytes, key: bytes, input: bytes, mode: str) -> bytes:
     out_blocks = []
 
     sea = SEA128(key=key1)
+
+    # Process each 16-byte block
     for block_index in range(0, len(input), 16):
         input_block = input[block_index : block_index + 16]
 
+        # Handle incomplete blocks (padding if necessary)
+        if len(input_block) < 16:
+            input_block += b"\x00" * (16 - len(input_block))  # Pad with zeros
+
+        # XOR input block with tweaked_key2
         input_block = bytes(input_block[i] ^ tweaked_key2[i] for i in range(16))
 
+        # Encrypt or decrypt based on mode
         match mode:
             case "encrypt":
                 out_block = sea.encrypt(input_block)
@@ -174,16 +182,17 @@ def xex(tweak: bytes, key: bytes, input: bytes, mode: str) -> bytes:
             case _:
                 raise ValueError("Invalid mode")
 
-        # xor tweaked_key2
+        # XOR output block with tweaked_key2 again
         out_block = bytes(out_block[i] ^ tweaked_key2[i] for i in range(16))
         out_blocks.append(out_block)
 
         if block_index + 16 < len(input):
-            # tweaked_key2 gf_mul block_index
-            tweaked_key2 = GALOIS_FIELD_128(min_poly_coefficients=[128, 7, 2, 1, 0], mode="xex").multiply(
-                a=int.from_bytes(tweaked_key2, "little"), b=int.from_bytes(ALPHA, "little")
-            )
-        pass
+            # Multiply tweaked_key2 by ALPHA in GF(2^128)
+            gf = GALOIS_FIELD_128(min_poly_coefficients=[128, 7, 2, 1, 0], mode="xex")
+            tweaked_key2_int = int.from_bytes(tweaked_key2, "little")
+            ALPHA_int = int.from_bytes(ALPHA, "little")
 
-    out_blocks = b"".join(out_blocks)
-    return out_blocks
+            tweaked_key2_int = gf.multiply(a=tweaked_key2_int, b=ALPHA_int)
+            tweaked_key2 = tweaked_key2_int.to_bytes(16, "little")  # Convert back to bytes
+
+    return b"".join(out_blocks)
