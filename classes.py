@@ -3,9 +3,8 @@ from helper import (
     aes_ecb,
     bytes_to_base64,
     coefficients_to_min_polynom,
-    transform_gcm_general,
+    reverse_bits_in_bytes,
     split_blocks,
-    xex_to_gcm,
     xor_bytes,
 )
 
@@ -67,9 +66,6 @@ class GALOIS_FIELD_128:
 
         returns: the product
         """
-        if self.mode == "gcm":
-            a = transform_gcm_general(polynom=a)
-            b = transform_gcm_general(polynom=b)
 
         result = 0
         while b:
@@ -84,7 +80,8 @@ class GALOIS_FIELD_128:
 
         # convert the result back to gcm mode
         if self.mode == "gcm":
-            result = transform_gcm_general(polynom=result)
+            result = reverse_bits_in_bytes(result)
+
         return result
 
     def reduce_polynomial(self, polynomial: int) -> int:
@@ -187,7 +184,7 @@ class GCM_CRYPT:
         Y = list()
         Y_len = 16 - len(self.nonce)
         # padd associated data with 0x00 right to 16 byte length
-        ass_data = ass_data.ljust(16, b"\x00")
+        ass_data_padded = ass_data.ljust(16, b"\x00")
 
         for i in range(1, len(plaintext_blocks) + 1 + 1):
             # Y_0 = nonce || ctr 1
@@ -227,30 +224,39 @@ class GCM_CRYPT:
 
         ciphertext = b"".join(ciphertext_blocks)
 
+        # TODO: GHASH still not working correctly.
         # *for GHASH
         # init_xor = 0000...0000
         init_xor = bytes(b"\x00" * 16)
         # init_xor = gfmul((ass_data ^ init_xor), H)
-        init_xor = GALOIS_FIELD_128().multiply(a=xex_to_gcm(xor_bytes(init_xor, ass_data)), b=xex_to_gcm(H))
+        gf = GALOIS_FIELD_128(min_poly_coefficients=[128, 7, 2, 1, 0], mode="gcm")
+        init_xor_int = int.from_bytes(xor_bytes(ass_data_padded, init_xor), "little")
+        H_int = int.from_bytes(H, "little")
+        init_xor_int = gf.multiply(a=init_xor_int, b=H_int)
 
         # solange CT_blöcke:
         for ct_block in ciphertext_blocks:
             # init_xor = gfmul((CT_n ^ init_xor), H)
-            init_xor = GALOIS_FIELD_128().multiply(a=xex_to_gcm(xor_bytes(init_xor, ct_block)), b=xex_to_gcm(H))
+            init_xor_int ^= int.from_bytes(ct_block, "little")
+            init_xor_int = gf.multiply(a=init_xor_int, b=H_int)
 
         # L = bit_length(ass_data) || bit_length(ciphertext)
         L = (len(ass_data) * 8).to_bytes(8, "big") + (len(ciphertext) * 8).to_bytes(8, "big")
+        L_int = int.from_bytes(L, "big")
+        print("L     = ", L.hex())
+        print("L_int = ", hex(L_int)[2:])
 
         # ghash = gfmul((L ^ init_xor), H)
-        GHASH = GALOIS_FIELD_128().multiply(a=xex_to_gcm(xor_bytes(init_xor, L)), b=xex_to_gcm(H))
+        init_xor_int ^= L_int
+        GHASH = gf.multiply(a=init_xor_int, b=H_int)
 
         # *for auth_tag
         # auth_tag = ecb_K(Y_0) ^ ghash
-        auth_tag = xor_bytes(Y[0], GHASH)
+        auth_tag = GHASH ^ int.from_bytes(Y[0], "little")
 
         return {
             "ciphertext": bytes_to_base64(bytes(ciphertext)),
-            "tag": bytes_to_base64(auth_tag),
+            "tag": bytes_to_base64(auth_tag.to_bytes(16, "little")),
             "L": bytes_to_base64(L),
             "H": bytes_to_base64(H),
         }

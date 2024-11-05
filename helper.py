@@ -176,43 +176,6 @@ def poly2block_gcm(coefficients: list) -> bytes:
     return bytes(block)
 
 
-def xex_to_gcm(block: bytes) -> bytes:
-    """
-    Convert a block from XEX mode to GCM mode
-
-    block: the block in XEX mode
-
-    returns: the block in GCM mode
-    """
-    reversed_block = bytearray(b"\x00" * 16)
-
-    for byte in block:
-        # reverse the bits in each byte
-        reversed_byte = 0
-        for i in range(8):
-            reversed_byte |= ((byte >> i) & 1) << (7 - i)
-        reversed_block.append(reversed_byte)
-
-    return bytes(reversed_block)
-
-
-def transform_gcm_general(polynom: int) -> int:
-    """
-    Transform a polynomial to a different mode
-
-    polynom: the polynomial
-    mode: the mode to transform to
-
-    returns: the transformed polynomial
-    """
-    # reverse the bits of the polynomial
-    reversed_polynom = 0
-    for i in range(128):
-        reversed_polynom |= ((polynom >> i) & 1) << (127 - i)
-
-    return reversed_polynom
-
-
 def coefficients_to_min_polynom(coefficients: list) -> int:
     """
     Convert a list of coefficients to a minimal polynomial
@@ -227,3 +190,25 @@ def coefficients_to_min_polynom(coefficients: list) -> int:
         minimal_polynomial |= 1 << coeff
 
     return minimal_polynomial
+
+
+def reverse_bits_in_bytes(n, byte_size=16):
+    """
+    Reverse the bits in a 16 byte integer
+
+    n: the integer
+    byte_size: the size of the integer in bytes
+
+    returns: the integer with the bits reversed
+    """
+    # Initialize the result
+    result = 0
+    # Iterate over each byte in the integer
+    for i in range(byte_size):
+        # Extract the current byte
+        current_byte = (n >> (i * 8)) & 0xFF
+        # Reverse bits in the current byte
+        reversed_byte = int("{:08b}".format(current_byte)[::-1], 2)
+        # Place the reversed byte back into its original position
+        result |= reversed_byte << (i * 8)
+    return result
