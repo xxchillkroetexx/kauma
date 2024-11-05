@@ -54,8 +54,8 @@ class GALOIS_FIELD_128:
     """
 
     def __init__(self, min_poly_coefficients: list[int], mode: str):
-        self.mode = mode
-        self.minimal_polynomial = coefficients_to_min_polynom(min_poly_coefficients)
+        self._mode = mode
+        self._minimal_polynomial = coefficients_to_min_polynom(min_poly_coefficients)
 
     def multiply(self, a: int, b: int) -> int:
         """
@@ -79,7 +79,7 @@ class GALOIS_FIELD_128:
         result = self.reduce_polynomial(polynomial=result)
 
         # convert the result back to gcm mode
-        if self.mode == "gcm":
+        if self._mode == "gcm":
             result = reverse_bits_in_bytes(result)
 
         return result
@@ -93,9 +93,9 @@ class GALOIS_FIELD_128:
 
         returns: the reduced polynomial
         """
-        while polynomial.bit_length() >= self.minimal_polynomial.bit_length():
-            shift = polynomial.bit_length() - self.minimal_polynomial.bit_length()
-            polynomial ^= self.minimal_polynomial << shift
+        while polynomial.bit_length() >= self._minimal_polynomial.bit_length():
+            shift = polynomial.bit_length() - self._minimal_polynomial.bit_length()
+            polynomial ^= self._minimal_polynomial << shift
 
         return polynomial
 
@@ -177,12 +177,116 @@ class GCM_CRYPT:
         self.nonce = nonce
         self.key = key
 
-    def encrypt(self, plaintext: bytes, ass_data: bytes) -> bytes:
+    def encrypt(self, plaintext: bytes, ass_data: bytes) -> dict:
+        plaintext_blocks = split_blocks(plaintext, 16)
+        ciphertext_blocks = self.__encrypt_blocks(plaintext_blocks=plaintext_blocks)
+
+        self.ciphertext = b"".join(ciphertext_blocks)
+
+        self.__calc_auth_key()
+
+        self.__calc_ghash(ass_data=ass_data, ciphertext_blocks=ciphertext_blocks)
+
+        self.__auth_tag
+
+        return {
+            "ciphertext": bytes_to_base64(self.ciphertext),
+            "tag": bytes_to_base64((self.__auth_tag()).to_bytes(16, "little")),
+            "L": bytes_to_base64(self.L.to_bytes(16, "big")),
+            "H": bytes_to_base64(self.auth_key),
+        }
+
+    def __calc_auth_key(self) -> None:
+        """this works"""
+        if self.algorithm == "aes128":
+            # H = ecb(000...000)
+            self.auth_key = aes_ecb(input=bytes(b"\x00" * 16), key=self.key, mode="encrypt")
+        elif self.algorithm == "sea128":
+            # H = sea(000...000)
+            self.auth_key = SEA128(key=self.key).encrypt(bytes(b"\00" * 16))
+        else:
+            raise ValueError("Invalid algorithm")
+
+    def __encrypt_blocks(self, plaintext_blocks: bytes) -> list[bytes]:
+        """this works"""
+        # calc Y_n
+        self.Y = list()
+        self.Y_len = 16 - len(self.nonce)
+
+        for i in range(1, len(plaintext_blocks) + 1 + 1):
+            self.Y.append(self.nonce + i.to_bytes(self.Y_len, "big"))
+
+        # encrypt blocks
+        ciphertext_blocks = list()
+        mode = "encrypt"
+        if self.algorithm == "aes128":
+            for i in range(len(plaintext_blocks)):
+                xorblock = aes_ecb(input=self.Y[i + 1], key=self.key, mode=mode)
+                ct_block = xor_bytes(xorblock, plaintext_blocks[i])
+                ciphertext_blocks.append(ct_block)
+        elif self.algorithm == "sea128":
+            sea = SEA128(key=self.key)
+            for i in range(len(plaintext_blocks)):
+                xorblock = sea.encrypt(input=self.Y[i + 1])
+                ct_block = xor_bytes(xorblock, plaintext_blocks[i])
+                ciphertext_blocks.append(ct_block)
+        else:
+            raise ValueError("Invalid algorithm")
+
+        return ciphertext_blocks
+
+    def __calc_ghash(self, ass_data: bytes, ciphertext_blocks: list) -> None:  # TODO
+        self.GHASH = int(0)
+
+        padded_ass_data = ass_data.ljust(16, b"\x00")
+        padded_ass_data_int = int.from_bytes(padded_ass_data, "big")
+
+        print("GHASH 0 -> ", hex(self.GHASH))
+        print(padded_ass_data.hex())
+        print(hex(padded_ass_data_int)[2:])
+        # ass_data rounds
+        # for block in padded_ass_data_block:
+        self.__ghash_one_round(input=padded_ass_data_int)
+        print("GHASH A -> ", hex(self.GHASH))
+
+        # ciphertext rounds
+        for block in ciphertext_blocks:
+            self.__ghash_one_round(input=int.from_bytes(block, "big"))
+            print("GHASH C -> ", hex(self.GHASH))
+
+        # last round
+        self.L = (len(ass_data) * 8) << 64 | (len(self.ciphertext) * 8)
+        self.__ghash_one_round(input=self.L)
+        print("GHASH L -> ", hex(self.GHASH))
+
+    def __ghash_one_round(self, input: int) -> None:  # TODO
+        # XOR
+        self.GHASH ^= input
+
+        # GF multiply
+        gf = GALOIS_FIELD_128(min_poly_coefficients=[0, 1, 2, 7, 128], mode="gcm")
+
+        H_int = int.from_bytes(self.auth_key, "big")
+        print("H_int: ", hex(H_int)[2:])
+        print("H_key: ", self.auth_key.hex())
+        self.GHASH = gf.multiply(a=reverse_bits_in_bytes(self.GHASH), b=reverse_bits_in_bytes(H_int))
+        pass
+
+    def __auth_tag(self) -> int:
+        return self.GHASH ^ int.from_bytes(self.Y[0], "big")
+
+    def decrypt(self, ciphertext: bytes) -> bytes:
+        pass
+
+    # ! ######################### Death Below ######################### ! #
+    def encrypt_old(self, plaintext: bytes, ass_data: bytes):
+
         ciphertext_blocks = list()
         plaintext_blocks = split_blocks(plaintext, 16)
         mode = "encrypt"
         Y = list()
         Y_len = 16 - len(self.nonce)
+
         # padd associated data with 0x00 right to 16 byte length
         ass_data_padded = ass_data.ljust(16, b"\x00")
 
@@ -194,7 +298,6 @@ class GCM_CRYPT:
         match self.algorithm:
             case "aes128":
                 # *for auth_key H
-                # H = ecb(000...000)
                 H = aes_ecb(input=bytes(b"\x00" * 16), key=self.key, mode=mode)
 
                 # *Block Encrypt
@@ -208,7 +311,6 @@ class GCM_CRYPT:
             case "sea128":
                 # *for auth_key H
                 sea = SEA128(key=self.key)
-                # H = sea(000...000)
                 H = sea.encrypt(input=bytes(b"\x00" * 16))
 
                 # *Block Encrypt
@@ -224,7 +326,7 @@ class GCM_CRYPT:
 
         ciphertext = b"".join(ciphertext_blocks)
 
-        # TODO: GHASH still not working correctly.
+        # TODO: GHASH still not working correctly. rotate the bytes before gfmul!!
         # *for GHASH
         # init_xor = 0000...0000
         init_xor = bytes(b"\x00" * 16)
@@ -232,22 +334,29 @@ class GCM_CRYPT:
         gf = GALOIS_FIELD_128(min_poly_coefficients=[128, 7, 2, 1, 0], mode="gcm")
         init_xor_int = int.from_bytes(xor_bytes(ass_data_padded, init_xor), "little")
         H_int = int.from_bytes(H, "little")
+        # reverse for gcm mul
+        init_xor_int = reverse_bits_in_bytes(init_xor_int)
+        H_int = reverse_bits_in_bytes(H_int)
         init_xor_int = gf.multiply(a=init_xor_int, b=H_int)
 
         # solange CT_blöcke:
         for ct_block in ciphertext_blocks:
             # init_xor = gfmul((CT_n ^ init_xor), H)
             init_xor_int ^= int.from_bytes(ct_block, "little")
+            init_xor_int = reverse_bits_in_bytes(init_xor_int)
             init_xor_int = gf.multiply(a=init_xor_int, b=H_int)
+        # TODO ###################################################### TODO #
 
         # L = bit_length(ass_data) || bit_length(ciphertext)
         L = (len(ass_data) * 8).to_bytes(8, "big") + (len(ciphertext) * 8).to_bytes(8, "big")
         L_int = int.from_bytes(L, "big")
-        print("L     = ", L.hex())
-        print("L_int = ", hex(L_int)[2:])
+        L_int = reverse_bits_in_bytes(L_int)
+        # print("L     = ", L.hex())
+        # print("L_int = ", hex(L_int)[2:])
 
         # ghash = gfmul((L ^ init_xor), H)
         init_xor_int ^= L_int
+        init_xor_int = reverse_bits_in_bytes(init_xor_int)
         GHASH = gf.multiply(a=init_xor_int, b=H_int)
 
         # *for auth_tag
@@ -261,8 +370,4 @@ class GCM_CRYPT:
             "H": bytes_to_base64(H),
         }
 
-    def decrypt(self, ciphertext: bytes) -> bytes:
-        pass
-
-    def _ghash():
-        pass
+    ############################################################
