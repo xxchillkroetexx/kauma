@@ -21,5 +21,4 @@ def gcm_encrypt(args: dict) -> dict:
     algorithm = args["algorithm"]
     ass_data = base64_to_bytes(args["ad"])
     gcm_dict = GCM_CRYPT(algorithm=algorithm, nonce=nonce, key=key).encrypt(plaintext=plaintext, ass_data=ass_data)
-    print(gcm_dict)
     return gcm_dict
