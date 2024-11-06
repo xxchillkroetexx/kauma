@@ -5,7 +5,6 @@ from helper import (
     poly2block_gcm,
     poly2block_xex,
     base64_to_bytes,
-    reverse_bits_in_bytes,
 )
 
 
@@ -88,8 +87,6 @@ def gfmul(args: dict) -> bytes:
             product = gf.multiply(a=a_int, b=b_int)
         case "gcm":
             gf = GALOIS_FIELD_128(min_poly_coefficients=coefficients, mode="gcm")
-            a_int = reverse_bits_in_bytes(a_int)
-            b_int = reverse_bits_in_bytes(b_int)
             product = gf.multiply(a=a_int, b=b_int)
         case _:
             raise ValueError("Invalid semantic")
