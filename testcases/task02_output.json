@@ -1,0 +1,27 @@
+{
+    "responses": {
+        "12a0efb4-4c1c-4a1b-9991-0f4b18e972dc": {
+            "product": "H6BIAAAAAAAAAAAAAADhAw=="
+        },
+        "1563c745-85ba-42b3-b20d-242b3866988a": {
+            "ciphertext": "ET3RmvH/Hbuxba63EuPRrw==",
+            "tag": "Mp0APJb/ZIURRwQlMgNN/w==",
+            "L": "AAAAAAAAAEAAAAAAAAAAgA==",
+            "H": "Bu6ywbsUKlpmZXMQyuGAng=="
+        },
+        "474f9429-9ea5-4273-abac-d42534ea8f80": {
+            "ciphertext": "0cI/Wg4R3URfrVFZ0hw/vg==",
+            "tag": "ysDdzOSnqLH0MQ+Mkb23gw==",
+            "L": "AAAAAAAAAEAAAAAAAAAAgA==",
+            "H": "xhFcAUT66qWIpYz+Ch5ujw=="
+        },
+        "gcm_decrypt-001": {
+            "authentic": true,
+            "plaintext": "EREavadt90qq"
+        },
+        "gcm-decrypt-002": {
+            "authentic": false,
+            "plaintext": "AxSiKm93Gr2+"
+        }
+    }
+}

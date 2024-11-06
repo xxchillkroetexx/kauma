@@ -20,5 +20,20 @@ def gcm_encrypt(args: dict) -> dict:
     key = base64_to_bytes(args["key"])
     algorithm = args["algorithm"]
     ass_data = base64_to_bytes(args["ad"])
-    gcm_dict = GCM_CRYPT(algorithm=algorithm, nonce=nonce, key=key).encrypt(plaintext=plaintext, ass_data=ass_data)
-    return gcm_dict
+    gcm_encrypt_dict = GCM_CRYPT(algorithm=algorithm, nonce=nonce, key=key).encrypt(
+        plaintext=plaintext, ass_data=ass_data
+    )
+    return gcm_encrypt_dict
+
+
+def gcm_decrypt(args: dict) -> dict:
+    algorithm = args["algorithm"]
+    nonce = base64_to_bytes(args["nonce"])
+    key = base64_to_bytes(args["key"])
+    ciphertext = base64_to_bytes(args["ciphertext"])
+    ass_data = base64_to_bytes(args["ad"])
+    auth_tag = base64_to_bytes(args["tag"])
+    gcm_decrypt_dict = GCM_CRYPT(algorithm=algorithm, nonce=nonce, key=key).decrypt(
+        ciphertext=ciphertext, ass_data=ass_data, auth_tag=auth_tag
+    )
+    return gcm_decrypt_dict

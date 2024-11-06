@@ -11,7 +11,7 @@ from task01 import (
     sea128,
     full_disc_encryption,
 )
-from task02 import gcm_encrypt, padding_oracle
+from task02 import gcm_encrypt, gcm_decrypt, padding_oracle
 
 
 def evaluate_testcases(testcase_json: dict) -> dict:
@@ -71,12 +71,17 @@ def evaluate_testcase(testcase: dict) -> dict:
         #         return {"plaintext": padding_oracle(testcase["arguments"])}
         #     except ValueError as e:
         #         raise ValueError(f"Error in padding_oracle: {e}")
-
         case "gcm_encrypt":
             try:
                 return gcm_encrypt(testcase["arguments"])
             except ValueError as e:
                 raise ValueError(f"Error in gcm_encrypt: {e}")
+        case "gcm_decrypt":
+            try:
+                return gcm_decrypt(testcase["arguments"])
+            except ValueError as e:
+                raise ValueError(f"Error in gcm_encrypt: {e}")
+
         case _:
             raise ValueError("Invalid action")
     pass

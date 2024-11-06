@@ -168,14 +168,30 @@ class PADDING_ORACLE:
 
 
 class GCM_CRYPT:
+    """
+    GCM encryption and decryption
+
+    algorithm: the algorithm to use (aes128, sea128)
+    nonce: the nonce
+    key: the key
+    """
+
     def __init__(self, algorithm: str, nonce: bytes, key: bytes):
         self.algorithm = algorithm
         self.nonce = nonce
         self.key = key
 
     def encrypt(self, plaintext: bytes, ass_data: bytes) -> dict:
+        """
+        Encrypt the given plaintext using GCM mode
+
+        plaintext: the plaintext to encrypt as a byte string
+        ass_data: additional authenticated data (AAD) as a byte string
+
+        returns: a dictionary containing the ciphertext, authentication tag, L value, and authentication key (encoded in base64)
+        """
         plaintext_blocks = split_blocks(plaintext, 16)
-        ciphertext_blocks = self.__encrypt_blocks(plaintext_blocks=plaintext_blocks)
+        ciphertext_blocks = self.__process_encr_and_decr_of_blocks(input_blocks=plaintext_blocks)
 
         self.ciphertext = b"".join(ciphertext_blocks)
 
@@ -190,8 +206,45 @@ class GCM_CRYPT:
             "H": bytes_to_base64(self.auth_key),
         }
 
-    def __calc_auth_key(self) -> None:
+    def decrypt(self, ciphertext: bytes, ass_data: bytes, auth_tag: bytes) -> dict:
+        """
+        Decrypt the given ciphertext using GCM mode and verify its authenticity.
 
+        ciphertext: the ciphertext to decrypt as a byte string
+        ass_data: additional authenticated data (AAD) as a byte string
+        auth_tag: the authentication tag to verify as a byte string
+
+        returns: a dictionary containing whether the tag is authentic and the decrypted plaintext (encoded in base64)
+        """
+        self.ciphertext = ciphertext
+        ciphertext_blocks = split_blocks(self.ciphertext, 16)
+        plaintext_blocks = self.__process_encr_and_decr_of_blocks(input_blocks=ciphertext_blocks)
+
+        self.plaintext = b"".join(plaintext_blocks)
+
+        self.__calc_auth_key()
+
+        self.__calc_ghash(ass_data=ass_data, ciphertext_blocks=ciphertext_blocks)
+
+        return {
+            "authentic": self.__check_auth_tag(auth_tag=auth_tag),
+            "plaintext": bytes_to_base64(self.plaintext),
+        }
+
+    def __check_auth_tag(self, auth_tag: bytes):
+        """
+        check if the provided authentication tag matches the computed tag.
+
+        auth_tag: the provided authentication tag
+
+        returns: bool
+        """
+        return auth_tag == self.__auth_tag().to_bytes(16, "little")
+
+    def __calc_auth_key(self) -> None:
+        """
+        Calculate the authentication key based on the selected algorithm.
+        """
         if self.algorithm == "aes128":
             # H = ecb(000...000)
             self.auth_key = aes_ecb(input=bytes(b"\x00" * 16), key=self.key, mode="encrypt")
@@ -201,35 +254,46 @@ class GCM_CRYPT:
         else:
             raise ValueError("Invalid algorithm")
 
-    def __encrypt_blocks(self, plaintext_blocks: bytes) -> list[bytes]:
-        """this works"""
+    def __process_encr_and_decr_of_blocks(self, input_blocks: list[bytes]) -> list[bytes]:
+        """
+        Process encryption or decryption of blocks using CTR mode
+
+        input_blocks: the blocks to process
+
+        returns: the processed blocks
+        """
         # calc Y_n
         self.Y = list()
-        self.Y_len = 16 - len(self.nonce)
+        ctr_len = 16 - len(self.nonce)
 
-        for i in range(1, len(plaintext_blocks) + 1 + 1):
-            self.Y.append(self.nonce + i.to_bytes(self.Y_len, "big"))
+        for i in range(1, len(input_blocks) + 1 + 1):
+            self.Y.append(self.nonce + i.to_bytes(ctr_len, "big"))
 
-        # encrypt blocks
-        ciphertext_blocks = list()
-        mode = "encrypt"
+        # decrypt blocks
+        output_blocks = list()
         if self.algorithm == "aes128":
-            for i in range(len(plaintext_blocks)):
-                xorblock = aes_ecb(input=self.Y[i + 1], key=self.key, mode=mode)
-                ct_block = xor_bytes(xorblock, plaintext_blocks[i])
-                ciphertext_blocks.append(ct_block)
+            for i in range(len(input_blocks)):
+                xorblock = aes_ecb(input=self.Y[i + 1], key=self.key, mode="encrypt")
+                out_block = xor_bytes(xorblock, input_blocks[i])
+                output_blocks.append(out_block)
         elif self.algorithm == "sea128":
             sea = SEA128(key=self.key)
-            for i in range(len(plaintext_blocks)):
+            for i in range(len(input_blocks)):
                 xorblock = sea.encrypt(input=self.Y[i + 1])
-                ct_block = xor_bytes(xorblock, plaintext_blocks[i])
-                ciphertext_blocks.append(ct_block)
+                out_block = xor_bytes(xorblock, input_blocks[i])
+                output_blocks.append(out_block)
         else:
             raise ValueError("Invalid algorithm")
 
-        return ciphertext_blocks
+        return output_blocks
 
     def __calc_ghash(self, ass_data: bytes, ciphertext_blocks: list) -> None:
+        """
+        Calculate the GHASH value based on additional data and ciphertext blocks.
+
+        ass_data: associated data
+        ciphertext_blocks: list of ciphertext blocks for ghash calculation
+        """
         # init GHASH
         self.GHASH = int(0)
         ass_data_blocks = split_blocks(ass_data, 16)
@@ -250,6 +314,11 @@ class GCM_CRYPT:
         self.__ghash_one_round(input=L_int)
 
     def __ghash_one_round(self, input: int) -> None:
+        """
+        Perform one round of GHASH calculation by XORing and multiplying in GF(2^128).
+
+        input: integer representation of the input block
+        """
         # XOR
         self.GHASH ^= input
 
@@ -260,6 +329,11 @@ class GCM_CRYPT:
         self.GHASH = gf.multiply(a=(self.GHASH), b=(H_int))
 
     def __auth_tag(self) -> int:
+        """
+        compute and return the authentication tag
+
+        returns: the authentication tag as integer
+        """
         if self.algorithm == "aes128":
             encrypted_Y_0 = aes_ecb(input=self.Y[0], key=self.key, mode="encrypt")
         elif self.algorithm == "sea128":
@@ -269,6 +343,3 @@ class GCM_CRYPT:
             encrypted_Y_0 = b"\x00"
 
         return self.GHASH ^ int.from_bytes(encrypted_Y_0, "little")
-
-    def decrypt(self, ciphertext: bytes) -> bytes:  # TODO
-        pass
