@@ -47,12 +47,6 @@ class SEA128:
 
 
 class GALOIS_FIELD_128:
-    """
-    Class to multiply two numbers in GF(2^128)
-
-    minimal_polynomial: the non-reducable polynomial
-    """
-
     def __init__(self, min_poly_coefficients: list[int], mode: str):
         self._mode = mode
         self._minimal_polynomial = coefficients_to_min_polynom(min_poly_coefficients)
@@ -66,7 +60,9 @@ class GALOIS_FIELD_128:
 
         returns: the product
         """
-
+        if self._mode == "gcm":
+            a = reverse_bits_in_bytes(a)
+            b = reverse_bits_in_bytes(b)
         result = 0
         while b:
             if b & 1:
@@ -187,17 +183,15 @@ class GCM_CRYPT:
 
         self.__calc_ghash(ass_data=ass_data, ciphertext_blocks=ciphertext_blocks)
 
-        self.__auth_tag
-
         return {
             "ciphertext": bytes_to_base64(self.ciphertext),
             "tag": bytes_to_base64((self.__auth_tag()).to_bytes(16, "little")),
-            "L": bytes_to_base64(self.L.to_bytes(16, "big")),
+            "L": bytes_to_base64(self.L),
             "H": bytes_to_base64(self.auth_key),
         }
 
     def __calc_auth_key(self) -> None:
-        """this works"""
+
         if self.algorithm == "aes128":
             # H = ecb(000...000)
             self.auth_key = aes_ecb(input=bytes(b"\x00" * 16), key=self.key, mode="encrypt")
@@ -235,139 +229,46 @@ class GCM_CRYPT:
 
         return ciphertext_blocks
 
-    def __calc_ghash(self, ass_data: bytes, ciphertext_blocks: list) -> None:  # TODO
+    def __calc_ghash(self, ass_data: bytes, ciphertext_blocks: list) -> None:
+        # init GHASH
         self.GHASH = int(0)
+        ass_data_blocks = split_blocks(ass_data, 16)
 
-        padded_ass_data = ass_data.ljust(16, b"\x00")
-        padded_ass_data_int = int.from_bytes(padded_ass_data, "big")
+        # GHASH ass_data rounds
+        for block in ass_data_blocks:
+            padded_ass_data = block.ljust(16, b"\x00")
+            padded_ass_data_int = int.from_bytes(padded_ass_data, "little")
+            self.__ghash_one_round(input=padded_ass_data_int)
 
-        print("GHASH 0 -> ", hex(self.GHASH))
-        print(padded_ass_data.hex())
-        print(hex(padded_ass_data_int)[2:])
-        # ass_data rounds
-        # for block in padded_ass_data_block:
-        self.__ghash_one_round(input=padded_ass_data_int)
-        print("GHASH A -> ", hex(self.GHASH))
-
-        # ciphertext rounds
+        # GHASH ciphertext rounds
         for block in ciphertext_blocks:
-            self.__ghash_one_round(input=int.from_bytes(block, "big"))
-            print("GHASH C -> ", hex(self.GHASH))
+            self.__ghash_one_round(input=int.from_bytes(block, "little"))
 
-        # last round
-        self.L = (len(ass_data) * 8) << 64 | (len(self.ciphertext) * 8)
-        self.__ghash_one_round(input=self.L)
-        print("GHASH L -> ", hex(self.GHASH))
+        # GHASH last round
+        self.L = (len(ass_data) * 8).to_bytes(8, "big") + (len(self.ciphertext) * 8).to_bytes(8, "big")
+        L_int = int.from_bytes(self.L, "little")
+        self.__ghash_one_round(input=L_int)
 
-    def __ghash_one_round(self, input: int) -> None:  # TODO
+    def __ghash_one_round(self, input: int) -> None:
         # XOR
         self.GHASH ^= input
 
         # GF multiply
         gf = GALOIS_FIELD_128(min_poly_coefficients=[0, 1, 2, 7, 128], mode="gcm")
+        H_int = int.from_bytes(self.auth_key, "little")
 
-        H_int = int.from_bytes(self.auth_key, "big")
-        print("H_int: ", hex(H_int)[2:])
-        print("H_key: ", self.auth_key.hex())
-        self.GHASH = gf.multiply(a=reverse_bits_in_bytes(self.GHASH), b=reverse_bits_in_bytes(H_int))
-        pass
+        self.GHASH = gf.multiply(a=(self.GHASH), b=(H_int))
 
     def __auth_tag(self) -> int:
-        return self.GHASH ^ int.from_bytes(self.Y[0], "big")
+        if self.algorithm == "aes128":
+            encrypted_Y_0 = aes_ecb(input=self.Y[0], key=self.key, mode="encrypt")
+        elif self.algorithm == "sea128":
+            sea = SEA128(key=self.key)
+            encrypted_Y_0 = sea.encrypt(input=self.Y[0])
+        else:
+            encrypted_Y_0 = b"\x00"
 
-    def decrypt(self, ciphertext: bytes) -> bytes:
+        return self.GHASH ^ int.from_bytes(encrypted_Y_0, "little")
+
+    def decrypt(self, ciphertext: bytes) -> bytes:  # TODO
         pass
-
-    # ! ######################### Death Below ######################### ! #
-    def encrypt_old(self, plaintext: bytes, ass_data: bytes):
-
-        ciphertext_blocks = list()
-        plaintext_blocks = split_blocks(plaintext, 16)
-        mode = "encrypt"
-        Y = list()
-        Y_len = 16 - len(self.nonce)
-
-        # padd associated data with 0x00 right to 16 byte length
-        ass_data_padded = ass_data.ljust(16, b"\x00")
-
-        for i in range(1, len(plaintext_blocks) + 1 + 1):
-            # Y_0 = nonce || ctr 1
-            # Y_n = nonce || ctr n+1
-            Y.append(self.nonce + i.to_bytes(Y_len, "big"))
-
-        match self.algorithm:
-            case "aes128":
-                # *for auth_key H
-                H = aes_ecb(input=bytes(b"\x00" * 16), key=self.key, mode=mode)
-
-                # *Block Encrypt
-                # CT_1 = ecb_K(Y_1) ^ PT_1
-                # CT_n = ecb_K(Y_n) ^ PT_n
-                for i in range(len(plaintext_blocks)):
-                    xorblock = aes_ecb(input=Y[i + 1], key=self.key, mode=mode)
-                    ct_block = xor_bytes(xorblock, plaintext_blocks[i])
-                    ciphertext_blocks.append(ct_block)
-
-            case "sea128":
-                # *for auth_key H
-                sea = SEA128(key=self.key)
-                H = sea.encrypt(input=bytes(b"\x00" * 16))
-
-                # *Block Encrypt
-                # CT_1 = sea(Y_1) ^ PT_1
-                # CT_n = sea(Y_n) ^ PT_n
-                for i in range(len(plaintext_blocks)):
-                    xorblock = sea.encrypt(input=Y[i + 1])
-                    ct_block = xor_bytes(xorblock, plaintext_blocks[i])
-                    ciphertext_blocks.append(ct_block)
-
-            case _:
-                raise ValueError("Invalid algorithm")
-
-        ciphertext = b"".join(ciphertext_blocks)
-
-        # TODO: GHASH still not working correctly. rotate the bytes before gfmul!!
-        # *for GHASH
-        # init_xor = 0000...0000
-        init_xor = bytes(b"\x00" * 16)
-        # init_xor = gfmul((ass_data ^ init_xor), H)
-        gf = GALOIS_FIELD_128(min_poly_coefficients=[128, 7, 2, 1, 0], mode="gcm")
-        init_xor_int = int.from_bytes(xor_bytes(ass_data_padded, init_xor), "little")
-        H_int = int.from_bytes(H, "little")
-        # reverse for gcm mul
-        init_xor_int = reverse_bits_in_bytes(init_xor_int)
-        H_int = reverse_bits_in_bytes(H_int)
-        init_xor_int = gf.multiply(a=init_xor_int, b=H_int)
-
-        # solange CT_blöcke:
-        for ct_block in ciphertext_blocks:
-            # init_xor = gfmul((CT_n ^ init_xor), H)
-            init_xor_int ^= int.from_bytes(ct_block, "little")
-            init_xor_int = reverse_bits_in_bytes(init_xor_int)
-            init_xor_int = gf.multiply(a=init_xor_int, b=H_int)
-        # TODO ###################################################### TODO #
-
-        # L = bit_length(ass_data) || bit_length(ciphertext)
-        L = (len(ass_data) * 8).to_bytes(8, "big") + (len(ciphertext) * 8).to_bytes(8, "big")
-        L_int = int.from_bytes(L, "big")
-        L_int = reverse_bits_in_bytes(L_int)
-        # print("L     = ", L.hex())
-        # print("L_int = ", hex(L_int)[2:])
-
-        # ghash = gfmul((L ^ init_xor), H)
-        init_xor_int ^= L_int
-        init_xor_int = reverse_bits_in_bytes(init_xor_int)
-        GHASH = gf.multiply(a=init_xor_int, b=H_int)
-
-        # *for auth_tag
-        # auth_tag = ecb_K(Y_0) ^ ghash
-        auth_tag = GHASH ^ int.from_bytes(Y[0], "little")
-
-        return {
-            "ciphertext": bytes_to_base64(bytes(ciphertext)),
-            "tag": bytes_to_base64(auth_tag.to_bytes(16, "little")),
-            "L": bytes_to_base64(L),
-            "H": bytes_to_base64(H),
-        }
-
-    ############################################################
