@@ -101,70 +101,121 @@ class PADDING_ORACLE:
         self.hostname = hostname
         self.port = port
 
-    def __del__(self):
-        if self.socket:
-            self.socket.close()
-
     def attack_padding_oracle(self, ciphertext: bytes, IV: bytes) -> bytes:
-        # split the ciphertext into blocks of 16 bytes
-        blocks = split_blocks(ciphertext, 16)
-        xor_iv = IV
-        plaintext = bytes()
-        for block in blocks:
-            Q = bytearray(b"\x00" * 16)
+        self.plaintext = b""
+        plaintext_block = b""
+        ciphertext_blocks = split_blocks(ciphertext, 16)
 
-            for current_byte in range(15, -1, -1):
-                Q = self.bruteforce_new_Q(Q=Q, ciphertext=block, current_byte=current_byte)
+        preceding_block = IV
 
-            print(f"Decrypted block: {Q.hex()}")
-            print(f"plaintext block: {xor_bytes(Q, xor_iv).hex()}")
-            plaintext += xor_bytes(Q, xor_iv)
-            print(f"Plaintext: {plaintext.hex()}")
-            xor_iv = block
+        # we iterate over the ciphertext from the beginning
+        for ct_block in ciphertext_blocks:
+            self.Q = bytearray(b"\x00" * 16)
+            self.block_cipher_output = b""
 
-        return plaintext
+            for padding_byte in range(1, 16 + 1):
 
-    def bruteforce_new_Q(self, Q: bytearray, ciphertext: bytearray, current_byte: int) -> bytes:
-        working_iv = bytearray(b"\x00" * 16)
+                # q_n = p_n ^ D(C)_n => p_n = padding
+                q_n = self.__find_correct_q(padding_byte=padding_byte, ciphertext_block=ct_block)
 
-        self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self.socket.connect((self.hostname, self.port))
+                # D(C)_15 = q_15 ^ p_15
+                D_C_n = self.__calc_decrypted_ciphertext_byte(q_n=q_n, padding=padding_byte)
 
-        self.socket.send(ciphertext)
+                self.block_cipher_output = D_C_n.to_bytes(1, "big") + self.block_cipher_output
 
-        for i in range(15, current_byte, -1):
-            bytes_to_generate = 16 - current_byte
-            working_iv[i] = Q[i] ^ bytes_to_generate
+                # p_15 = 0x01, p_15-14 = 0x02, ... p_15-1 = 0x0F
+                self.__set_padding_in_Q_for_next_byte(padding_byte, self.block_cipher_output)
 
-        new_Q = self.bruteforce_byte(Q=Q, working_iv=working_iv, current_byte=current_byte)
-        self.socket.close()
-        return new_Q
+            # decrypt the ciphertext block
+            plaintext_block = xor_bytes(self.block_cipher_output, preceding_block)
+            self.plaintext += plaintext_block
 
-    def bruteforce_byte(self, Q: bytearray, working_iv: bytearray, current_byte: int) -> bytes:
-        for guess in range(256):
-            # set the guess for the current byte
-            working_iv[current_byte] = guess
-            if self.check_padding(IV=working_iv):
-                # if last byte, check for false positives
-                if current_byte == 15:
-                    temp_working_iv = bytearray(working_iv)
-                    # invert the second last byte and check again
-                    temp_working_iv[-2] = ~temp_working_iv[-2] & 0xFF
-                    if self.check_padding(IV=temp_working_iv) == False:
-                        continue  # continue with next guess as this is a false positive
-                print(f"Found correct guess for byte {current_byte}: {hex(guess)}")
-                # return the correct guess
-                Q = bytearray(Q)
-                Q[current_byte] = guess ^ (16 - current_byte)
-                return bytes(Q)
+            # set the preceding block to be the current ciphertext block
+            preceding_block = ct_block
 
-        raise ValueError(f"No valid padding found for byte: {current_byte}")
+        return self.plaintext
 
-    def check_padding(self, IV: bytes) -> bool:
-        self.socket.send(int(1).to_bytes(2, "little"))
-        self.socket.send(IV)
-        response = self.socket.recv(1)
-        return response == b"\x01"
+    def __set_padding_in_Q_for_next_byte(self, padding_byte: int, IV_xor_PT_raw: int) -> None:
+        # set the padding in Q
+        # q_n = D(C)_n ^ padding_byte
+        for i in range(1, padding_byte + 1):
+            self.Q[-i] = IV_xor_PT_raw[-i] ^ (padding_byte + 1)
+
+    def __find_correct_q(self, padding_byte: int, ciphertext_block: bytes) -> int:
+        # * server request
+
+        # iterate over the possible values for q_n and add all possible values to a list
+        # q_n = 0x00, 0x01, ..., 0xFF
+        if padding_byte != 1:
+            known_padding = bytearray()
+            for i in range(1, padding_byte):
+                known_padding.append(padding_byte ^ self.block_cipher_output[-i])
+            known_padding.reverse()
+            known_padding = bytes(known_padding)
+        else:
+            known_padding = b""
+
+        Qs_to_try = []
+        for i in range(256):
+            q_n = i.to_bytes(1, "big")
+
+            # create a new Q for
+            if padding_byte == 1:
+                temp_Q = q_n
+            else:
+                temp_Q = q_n + known_padding  # TODO!
+
+            Qs_to_try.append(temp_Q.rjust(16, b"\x00"))
+
+        # concatenate all qs to a single byte string
+        Qs_to_try = b"".join(Qs_to_try)
+
+        # send all possible values to the server at once
+        try:
+            tcp_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            tcp_socket.connect((self.hostname, self.port))
+            tcp_socket.sendall(ciphertext_block)
+            tcp_socket.sendall(int(256).to_bytes(2, "little"))
+            tcp_socket.sendall(Qs_to_try)
+            # get an response from the server
+            response = tcp_socket.recv(256)
+        finally:
+            tcp_socket.close()
+
+        # check where the padding is correct
+        positions = [index for index, byte in enumerate(response) if byte == 0x01]
+
+        # TODO check: edge case: 2 at rightmost byte
+        if padding_byte == 1:
+            if len(positions) > 1:
+                temp_Q = Qs_to_try[positions[0] * 16 : (positions[0] + 1) * 16]
+                temp_Q = bytearray(temp_Q)
+                temp_Q[-1] = ~temp_Q[-1] & 0xFF
+                temp_Q = bytes(temp_Q)
+                # send the new Q to the server
+                try:
+                    tcp_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+                    tcp_socket.connect((self.hostname, self.port))
+                    tcp_socket.sendall(ciphertext_block)
+                    tcp_socket.sendall(b"\x01\x00")
+                    tcp_socket.sendall(temp_Q)
+                    # get an response from the server
+                    response = tcp_socket.recv(1)
+                finally:
+                    tcp_socket.close()
+                # check if the padding is correct
+                if response == 1:
+                    return temp_Q[-1]
+                else:
+                    temp_Q = Qs_to_try[positions[1] * 16 : (positions[1] + 1) * 16]
+                    return temp_Q[-1]
+        local_Q = Qs_to_try[positions[0] * 16 : (positions[0] + 1) * 16]
+        return local_Q[-padding_byte]
+
+    def __calc_decrypted_ciphertext_byte(self, q_n: int, padding: int) -> int:
+        # calculate the decrypted ciphertext byte
+        # D(C)_n = q_n ^ padding
+        return q_n ^ padding
 
 
 class GCM_CRYPT:
