@@ -2,16 +2,16 @@ from classes import GCM_CRYPT, PADDING_ORACLE
 from helper import base64_to_bytes
 
 
-def padding_oracle(args: dict) -> dict:
+def padding_oracle(args: dict) -> bytes:
     ciphertext = base64_to_bytes(args["ciphertext"])
     IV = base64_to_bytes(args["iv"])
     hostname = args["hostname"]
     port = args["port"]
 
     padding_oracle = PADDING_ORACLE(hostname, port)
-    plaintext = padding_oracle.attack_padding_oracle(ciphertext, IV)
+    plaintext = padding_oracle.attack_padding_oracle(ciphertext=ciphertext, IV=IV)
 
-    return {"plaintext": plaintext}
+    return plaintext
 
 
 def gcm_encrypt(args: dict) -> dict:

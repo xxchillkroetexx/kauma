@@ -3,8 +3,12 @@ import struct
 from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
 from cryptography.hazmat.primitives.padding import PKCS7
+import argparse
 
 import time
+
+verbose = True
+
 
 class PaddingOracleServer:
     def __init__(self, key):
@@ -30,9 +34,11 @@ class PaddingOracleServer:
         except ValueError:
             return False  # Padding is incorrect
 
+
 def start_server(host, port, key):
     # Start the server and wait for client connections
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as server:
+        server.setsockopt(socket.SOL_SOCKET, socket.SO_SNDBUF, 256 + 1)
         server.bind((host, port))
         server.listen()
         print(f"Padding Oracle Server running on {host}:{port}")
@@ -42,7 +48,8 @@ def start_server(host, port, key):
         while True:
             conn, addr = server.accept()
             with conn:
-                print(f"Connected by {addr}")
+                if verbose:
+                    print(f"Connected by {addr}")
 
                 # Step 1: Receive initial 16-byte ciphertext from client
                 received_ciphertext = conn.recv(16)
@@ -50,20 +57,23 @@ def start_server(host, port, key):
                     print("Invalid ciphertext received. Closing connection.")
                     conn.close()
                     continue
-                print(f"Received Ciphertext: {received_ciphertext.hex()}")
+                if verbose:
+                    print(f"Received Ciphertext: {received_ciphertext.hex()}")
 
                 # Decrypt the ciphertext once at the beginning
                 initial_plaintext = oracle.decrypt_ciphertext(received_ciphertext)
 
                 while True:
+                    start_time = time.time()
                     # Step 2: Receive length field l (2 bytes, little endian)
                     length_field = conn.recv(2)
                     if not length_field:
                         break
 
                     # Convert length field to integer
-                    l = struct.unpack('<H', length_field)[0]
-                    print(f"Length field l: {l}")
+                    l = struct.unpack("<H", length_field)[0]
+                    if verbose:
+                        print(f"Length field l: {l}")
 
                     # If l = 0, terminate the connection
                     if l == 0:
@@ -76,12 +86,13 @@ def start_server(host, port, key):
                         print(len(q_blocks))
                         print("Invalid Q-blocks received. Closing connection.")
                         break
-                    print(f"Received Q-blocks: {len(q_blocks)} bytes")
+                    if verbose:
+                        print(f"Received Q-blocks: {len(q_blocks)} bytes")
 
                     # Step 4: Prepare response for each Q-block (l bytes, 00 or 01)
                     response = bytearray()
                     for i in range(l):
-                        q_block = q_blocks[i*16:(i+1)*16]
+                        q_block = q_blocks[i * 16 : (i + 1) * 16]
                         # Check padding and generate response byte
                         if oracle.check_padding(q_block, initial_plaintext):
                             response.append(0x01)  # Padding correct
@@ -90,10 +101,15 @@ def start_server(host, port, key):
 
                     # Send all responses as one response after processing all Q-blocks
                     conn.sendall(response)
-                
-                    print(f"Sent response: {response.hex()}")
 
-if __name__ == '__main__':
-    # Example key for server initialization
-    key = "00000000000000000000000000000000"
-    start_server("127.0.0.1", 18652, key)
+                    if verbose:
+                        print(f"Sent response: {response.hex()}")
+                        print(f"Time taken: {(time.time() - start_time) * 1000:.2f}ms")
+
+
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser()
+    parser.add_argument("key", help="AES key in hex format", default="1feaff907aef391b5a79f241293214e6", nargs="?")
+
+    args = parser.parse_args()
+    start_server("127.0.0.1", 18652, args.key)
