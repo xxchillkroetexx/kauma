@@ -1,4 +1,4 @@
-from classes import SEA128, GALOIS_FIELD_128
+from classes import GALOIS_ELEMENT_128, SEA128
 from helper import (
     block2poly_gcm,
     block2poly_xex,
@@ -76,21 +76,21 @@ def gfmul(args: dict) -> bytes:
 
     returns: bytes of the product
     """
-    coefficients = [128, 7, 2, 1, 0]
     a = base64_to_bytes(args["a"])
     b = base64_to_bytes(args["b"])
     a_int = int.from_bytes(a, "little")
     b_int = int.from_bytes(b, "little")
     match args["semantic"]:
         case "xex":
-            gf = GALOIS_FIELD_128(min_poly_coefficients=coefficients, mode="xex")
-            product = gf.multiply(a=a_int, b=b_int)
+            a = GALOIS_ELEMENT_128(a_int, mode="xex")
+            b = GALOIS_ELEMENT_128(b_int, mode="xex")
+            product = a * b
         case "gcm":
-            gf = GALOIS_FIELD_128(min_poly_coefficients=coefficients, mode="gcm")
-            product = gf.multiply(a=a_int, b=b_int)
-        case _:
-            raise ValueError("Invalid semantic")
-    return product.to_bytes(16, "little")
+            a = GALOIS_ELEMENT_128(a_int, mode="gcm")
+            b = GALOIS_ELEMENT_128(b_int, mode="gcm")
+            product = a * b
+            pass
+    return product.to_bytes()
 
 
 def sea128(args: dict) -> bytes:
@@ -157,6 +157,8 @@ def xex(tweak: bytes, key: bytes, input: bytes, mode: str) -> bytes:
     key2 = key[16:]
 
     ALPHA = poly2block_xex([1])
+    ALPHA_gf_ele = GALOIS_ELEMENT_128(int.from_bytes(ALPHA, "little"), mode="xex")
+
     tweaked_key2 = SEA128(key=key2).encrypt(input=tweak)
     out_blocks = []
 
@@ -187,12 +189,10 @@ def xex(tweak: bytes, key: bytes, input: bytes, mode: str) -> bytes:
         out_blocks.append(out_block)
 
         if block_index + 16 < len(input):
-            # Multiply tweaked_key2 by ALPHA in GF(2^128)
-            gf = GALOIS_FIELD_128(min_poly_coefficients=[128, 7, 2, 1, 0], mode="xex")
-            tweaked_key2_int = int.from_bytes(tweaked_key2, "little")
-            ALPHA_int = int.from_bytes(ALPHA, "little")
+            # # Multiply tweaked_key2 by ALPHA in GF(2^128)
+            tweaked_key2_gf_element = GALOIS_ELEMENT_128(int.from_bytes(tweaked_key2, "little"), mode="xex")
+            tweaked_key2_gf_element = tweaked_key2_gf_element * ALPHA_gf_ele
 
-            tweaked_key2_int = gf.multiply(a=tweaked_key2_int, b=ALPHA_int)
-            tweaked_key2 = tweaked_key2_int.to_bytes(16, "little")  # Convert back to bytes
+            tweaked_key2 = tweaked_key2_gf_element.to_bytes("little")  # Convert back to bytes
 
     return b"".join(out_blocks)
