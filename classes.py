@@ -98,6 +98,9 @@ class GALOIS_ELEMENT_128:
         sum = self._value ^ other._value
         return GALOIS_ELEMENT_128(value=sum, mode=self._mode)
 
+    def __str__(self) -> str:
+        return f"{hex(self._value)}"
+
     def to_bytes(self, byteorder: str = "little") -> bytes:
         return self._value.to_bytes(16, byteorder)
 

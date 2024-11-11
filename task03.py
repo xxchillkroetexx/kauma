@@ -26,3 +26,29 @@ def gfpoly_add(args: dict) -> list[str]:
     S_b64 = [bytes_to_base64(coeff) for coeff in S_bytes]
 
     return S_b64
+
+
+def gfpoly_mul(args: dict) -> list[str]:
+    A_b64 = args["A"]
+    B_b64 = args["B"]
+
+    # Convert base64 strings to byte arrays
+    A_bytes = [base64_to_bytes(coeff) for coeff in A_b64]
+    B_bytes = [base64_to_bytes(coeff) for coeff in B_b64]
+    # Convert byte arrays to GALOIS_ELEMENT_128 objects
+    A = [GALOIS_ELEMENT_128(value=int.from_bytes(coeff), mode="gcm") for coeff in A_bytes]
+    B = [GALOIS_ELEMENT_128(value=int.from_bytes(coeff), mode="gcm") for coeff in B_bytes]
+
+    # Inintialize Product with maximum possible length
+    P = [GALOIS_ELEMENT_128(value=0, mode="gcm") for _ in range(len(A) + len(B) - 1)]
+
+    # * Polynomial multiplication
+    for i in range(len(A)):
+        for j in range(len(B)):
+            P[i + j] = P[i + j] + (A[i] * B[j])
+
+    # Convert result back to bytes and then to base64 strings
+    P_bytes = [int.to_bytes(_.get_block(), 16, "big") for _ in P]
+    P_b64 = [bytes_to_base64(coeff) for coeff in P_bytes]
+
+    return P_b64
