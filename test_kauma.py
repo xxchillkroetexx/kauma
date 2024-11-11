@@ -49,5 +49,27 @@ def test_gcm_block_poly():
     pass
 
 
+def test_gcm_encrypt():
+    with open("testcases/gcm_encrypt_in.json", "r") as file:
+        testcases_json = json.load(file)
+    with open("testcases/gcm_encrypt_out.json", "r") as file:
+        output_json = json.load(file)
+
+    assert evaluate_testcases(testcase_json=testcases_json) == output_json
+
+    pass
+
+
+def test_gcm_decrypt():
+    with open("testcases/gcm_decrypt_in.json", "r") as file:
+        testcases_json = json.load(file)
+    with open("testcases/gcm_decrypt_out.json", "r") as file:
+        output_json = json.load(file)
+
+    assert evaluate_testcases(testcase_json=testcases_json) == output_json
+
+    pass
+
+
 if __name__ == "__main__":
     pytest.main()

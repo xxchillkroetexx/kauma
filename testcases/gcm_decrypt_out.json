@@ -1,0 +1,12 @@
+{
+    "responses": {
+        "gcm_decrypt-001": {
+            "authentic": true,
+            "plaintext": "EREavadt90qq"
+        },
+        "gcm-decrypt-002": {
+            "authentic": false,
+            "plaintext": "AxSiKm93Gr2+"
+        }
+    }
+}
