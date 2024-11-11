@@ -68,6 +68,7 @@ class GALOIS_ELEMENT_128:
 
         if self._mode == "gcm":
             self_val_copy = reverse_bits_in_bytes(self_val_copy)
+        if other._mode == "gcm":
             other_val_copy = reverse_bits_in_bytes(other_val_copy)
         result = 0
         while other_val_copy:
@@ -85,6 +86,17 @@ class GALOIS_ELEMENT_128:
             result = reverse_bits_in_bytes(result)
 
         return GALOIS_ELEMENT_128(value=result, mode=self._mode)
+
+    def __add__(self, other: "GALOIS_ELEMENT_128") -> "GALOIS_ELEMENT_128":  # TODO
+        """
+        Add two elements in GF(2^128)
+
+        other: the other element
+
+        returns: the sum
+        """
+        sum = self._value ^ other._value
+        return GALOIS_ELEMENT_128(value=sum, mode=self._mode)
 
     def to_bytes(self, byteorder: str = "little") -> bytes:
         return self._value.to_bytes(16, byteorder)
