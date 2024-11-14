@@ -1,5 +1,197 @@
 {
     "testcases": {
+        "gfmul-xex-001": {
+            "action": "gfmul",
+            "arguments": {
+                "semantic": "xex",
+                "a": "gqxW1ZZf1goo7vud21wOPw==",
+                "b": "eTn1+A4hM33SJG9txHJQGA=="
+            }
+        },
+        "gfmul-xex-002": {
+            "action": "gfmul",
+            "arguments": {
+                "semantic": "xex",
+                "a": "rTUXBKN6hYI1UKPKCDaH1g==",
+                "b": "/Qyv+mYALnbOQ7a4OjY5iQ=="
+            }
+        },
+        "gfmul-xex-003": {
+            "action": "gfmul",
+            "arguments": {
+                "semantic": "xex",
+                "a": "a+Kgo8fVW85MOrg5Y7a7/Q==",
+                "b": "LtTjN2eiZe8Kuf+m7ZKp5w=="
+            }
+        },
+        "gfmul-xex-004": {
+            "action": "gfmul",
+            "arguments": {
+                "semantic": "xex",
+                "a": "TEgzlYvQcSmFSoKgajWQBg==",
+                "b": "cyz6fioT44LfuHJ1J52tdA=="
+            }
+        },
+        "gfmul-xex-005": {
+            "action": "gfmul",
+            "arguments": {
+                "semantic": "xex",
+                "a": "k7H9m2pQvN4RxLsWjY3Efw==",
+                "b": "Pq8nD5tBvX2KmJcRwZ4Vhg=="
+            }
+        },
+        "gfmul-xex-006": {
+            "action": "gfmul",
+            "arguments": {
+                "semantic": "xex",
+                "a": "bWx4nKpTvL8CqNjM2hF9Yw==",
+                "b": "YtR7mP3QwK5NzXcBvJ8Sag=="
+            }
+        },
+        "gfmul-xex-007": {
+            "action": "gfmul",
+            "arguments": {
+                "semantic": "xex",
+                "a": "QmN8wP4HrK2XtYjE5nB6Lg==",
+                "b": "vM2hG9Zx4pK7nW5RqT8Fcw=="
+            }
+        },
+        "gfmul-xex-008": {
+            "action": "gfmul",
+            "arguments": {
+                "semantic": "xex",
+                "a": "dKj2mN5BvX8WqR4HtY7Lpw==",
+                "b": "gTn1+M4hK3pSJG9txHJQGA=="
+            }
+        },
+        "gfmul-xex-009": {
+            "action": "gfmul",
+            "arguments": {
+                "semantic": "xex",
+                "a": "xKp2mN5BvX8WqR4HtY7Lpw==",
+                "b": "jTn1+M4hK3pSJG9txHJQGA=="
+            }
+        },
+        "gfmul-xex-010": {
+            "action": "gfmul",
+            "arguments": {
+                "semantic": "xex",
+                "a": "pKj2mN5BvX8WqR4HtY7Lpw==",
+                "b": "kTn1+M4hK3pSJG9txHJQGA=="
+            }
+        },
+        "gfmul-xex-011": {
+            "action": "gfmul",
+            "arguments": {
+                "semantic": "xex",
+                "a": "mKj2mN5BvX8WqR4HtY7Lpw==",
+                "b": "nTn1+M4hK3pSJG9txHJQGA=="
+            }
+        },
+        "gfmul-xex-012": {
+            "action": "gfmul",
+            "arguments": {
+                "semantic": "xex",
+                "a": "rKj2mN5BvX8WqR4HtY7Lpw==",
+                "b": "qTn1+M4hK3pSJG9txHJQGA=="
+            }
+        },
+        "gfmul-xex-013": {
+            "action": "gfmul",
+            "arguments": {
+                "semantic": "xex",
+                "a": "sKj2mN5BvX8WqR4HtY7Lpw==",
+                "b": "rTn1+M4hK3pSJG9txHJQGA=="
+            }
+        },
+        "gfmul-xex-014": {
+            "action": "gfmul",
+            "arguments": {
+                "semantic": "xex",
+                "a": "tKj2mN5BvX8WqR4HtY7Lpw==",
+                "b": "sTn1+M4hK3pSJG9txHJQGA=="
+            }
+        },
+        "gfmul-xex-015": {
+            "action": "gfmul",
+            "arguments": {
+                "semantic": "xex",
+                "a": "uKj2mN5BvX8WqR4HtY7Lpw==",
+                "b": "tTn1+M4hK3pSJG9txHJQGA=="
+            }
+        },
+        "gfmul-xex-016": {
+            "action": "gfmul",
+            "arguments": {
+                "semantic": "xex",
+                "a": "vKj2mN5BvX8WqR4HtY7Lpw==",
+                "b": "uTn1+M4hK3pSJG9txHJQGA=="
+            }
+        },
+        "gfmul-xex-017": {
+            "action": "gfmul",
+            "arguments": {
+                "semantic": "xex",
+                "a": "wKj2mN5BvX8WqR4HtY7Lpw==",
+                "b": "vTn1+M4hK3pSJG9txHJQGA=="
+            }
+        },
+        "gfmul-xex-018": {
+            "action": "gfmul",
+            "arguments": {
+                "semantic": "xex",
+                "a": "xKj2mN5BvX8WqR4HtY7Lpw==",
+                "b": "wTn1+M4hK3pSJG9txHJQGA=="
+            }
+        },
+        "gfmul-xex-019": {
+            "action": "gfmul",
+            "arguments": {
+                "semantic": "xex",
+                "a": "yKj2mN5BvX8WqR4HtY7Lpw==",
+                "b": "xTn1+M4hK3pSJG9txHJQGA=="
+            }
+        },
+        "gfmul-xex-020": {
+            "action": "gfmul",
+            "arguments": {
+                "semantic": "xex",
+                "a": "zKj2mN5BvX8WqR4HtY7Lpw==",
+                "b": "yTn1+M4hK3pSJG9txHJQGA=="
+            }
+        },
+        "gfmul-xex-021": {
+            "action": "gfmul",
+            "arguments": {
+                "semantic": "xex",
+                "a": "0Kj2mN5BvX8WqR4HtY7Lpw==",
+                "b": "zTn1+M4hK3pSJG9txHJQGA=="
+            }
+        },
+        "gfmul-xex-022": {
+            "action": "gfmul",
+            "arguments": {
+                "semantic": "xex",
+                "a": "1Kj2mN5BvX8WqR4HtY7Lpw==",
+                "b": "0Tn1+M4hK3pSJG9txHJQGA=="
+            }
+        },
+        "gfmul-xex-023": {
+            "action": "gfmul",
+            "arguments": {
+                "semantic": "xex",
+                "a": "2Kj2mN5BvX8WqR4HtY7Lpw==",
+                "b": "1Tn1+M4hK3pSJG9txHJQGA=="
+            }
+        },
+        "gfmul-xex-024": {
+            "action": "gfmul",
+            "arguments": {
+                "semantic": "xex",
+                "a": "3Kj2mN5BvX8WqR4HtY7Lpw==",
+                "b": "2Tn1+M4hK3pSJG9txHJQGA=="
+            }
+        },
         "fd976eb5-2a0b-4f08-a571-f5843be36e08": {
             "action": "gfmul",
             "arguments": {
