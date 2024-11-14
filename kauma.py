@@ -12,7 +12,7 @@ from task01 import (
     full_disc_encryption,
 )
 from task02 import gcm_encrypt, gcm_decrypt, padding_oracle
-from task03 import gfpoly_add, gfpoly_mul
+from task03 import gfpoly_add, gfpoly_mul, gfpoly_pow
 
 
 def evaluate_testcases(testcase_json: dict) -> dict:
@@ -92,6 +92,11 @@ def evaluate_testcase(testcase: dict) -> dict:
                 return {"P": gfpoly_mul(testcase["arguments"])}
             except ValueError as e:
                 raise ValueError(f"Error in gfpoly_mul: {e}")
+        case "gfpoly_pow":
+            try:
+                return {"R": gfpoly_pow(testcase["arguments"])}
+            except ValueError as e:
+                raise ValueError(f"Error in gfpoly_pow: {e}")
 
         case _:
             raise ValueError("Invalid action")

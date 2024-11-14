@@ -98,6 +98,22 @@ class GALOIS_ELEMENT_128:
         sum = self._value ^ other._value
         return GALOIS_ELEMENT_128(value=sum, mode=self._mode)
 
+    def __pow__(self, exponent: int) -> "GALOIS_ELEMENT_128":
+        """
+        Raise an element to the power of another element
+
+        exponent: the exponent
+
+        returns: the result
+        """
+        result = GALOIS_ELEMENT_128(1, mode=self._mode)
+        while exponent > 0:
+            if exponent % 2 == 1:
+                result *= self
+            self *= self
+            exponent >>= 1
+        return result
+
     def __str__(self) -> str:
         return f"{hex(self._value)}"
 
@@ -164,7 +180,7 @@ class GALOIS_POLY_128:
         sum = [self_coeff + other_coeff for self_coeff, other_coeff in zip(self_coeff, other_coeff)]
         return GALOIS_POLY_128(coefficients=sum)
 
-    def __pow__(self, exponent: int) -> "GALOIS_POLY_128":  # TODO
+    def __pow__(self, exponent: int) -> "GALOIS_POLY_128":
         """
         Raise a polynomial to the power of another polynomial
 
@@ -172,7 +188,9 @@ class GALOIS_POLY_128:
 
         returns: the result
         """
-        result = GALOIS_POLY_128(coefficients=[1])
+        result = GALOIS_POLY_128(coefficients=[GALOIS_ELEMENT_128(0x80, mode="gcm")])  # 0x80 = x^0
+
+        # square and multiply
         while exponent > 0:
             if exponent % 2 == 1:
                 result *= self
