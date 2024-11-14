@@ -46,30 +46,37 @@ class SEA128:
         return plaintext
 
 
-class GALOIS_FIELD_128:
-    def __init__(self, min_poly_coefficients: list[int], mode: str):
+class GALOIS_ELEMENT_128:
+    def __init__(self, value: int, mode: str):
+        if not isinstance(value, int):
+            raise ValueError("Value must be an integer", type(value), value)
+        self._value = value
         self._mode = mode
-        self._minimal_polynomial = coefficients_to_min_polynom(min_poly_coefficients)
+        self._minimal_polynomial = coefficients_to_min_polynom([128, 7, 2, 1, 0])
 
-    def multiply(self, a: int, b: int) -> int:
+    def __mul__(self, other: "GALOIS_ELEMENT_128") -> "GALOIS_ELEMENT_128":
         """
-        Multiply two numbers in GF(2^128)
+        Multiply two elements in GF(2^128)
 
-        a: the first polynomial
-        b: the second polynomial
+        other: the other element
 
         returns: the product
         """
+
+        self_val_copy = self._value
+        other_val_copy = other._value
+
         if self._mode == "gcm":
-            a = reverse_bits_in_bytes(a)
-            b = reverse_bits_in_bytes(b)
+            self_val_copy = reverse_bits_in_bytes(self_val_copy)
+        if other._mode == "gcm":
+            other_val_copy = reverse_bits_in_bytes(other_val_copy)
         result = 0
-        while b:
-            if b & 1:
-                result ^= a
-            a <<= 1
-            b >>= 1
-            a = self.reduce_polynomial(polynomial=a)
+        while other_val_copy:
+            if other_val_copy & 1:
+                result ^= self_val_copy
+            self_val_copy <<= 1
+            other_val_copy >>= 1
+            self_val_copy = self.reduce_polynomial(polynomial=self_val_copy)
 
         # reduce the result one last time
         result = self.reduce_polynomial(polynomial=result)
@@ -78,7 +85,43 @@ class GALOIS_FIELD_128:
         if self._mode == "gcm":
             result = reverse_bits_in_bytes(result)
 
+        return GALOIS_ELEMENT_128(value=result, mode=self._mode)
+
+    def __add__(self, other: "GALOIS_ELEMENT_128") -> "GALOIS_ELEMENT_128":
+        """
+        Add two elements in GF(2^128)
+
+        other: the other element
+
+        returns: the sum
+        """
+        sum = self._value ^ other._value
+        return GALOIS_ELEMENT_128(value=sum, mode=self._mode)
+
+    def __pow__(self, exponent: int) -> "GALOIS_ELEMENT_128":
+        """
+        Raise an element to the power of another element
+
+        exponent: the exponent
+
+        returns: the result
+        """
+        result = GALOIS_ELEMENT_128(1, mode=self._mode)
+        while exponent > 0:
+            if exponent % 2 == 1:
+                result *= self
+            self *= self
+            exponent >>= 1
         return result
+
+    def __str__(self) -> str:
+        return f"{hex(self._value)}"
+
+    def to_bytes(self, byteorder: str = "little") -> bytes:
+        return self._value.to_bytes(16, byteorder)
+
+    def get_block(self) -> int:
+        return self._value
 
     def reduce_polynomial(self, polynomial: int) -> int:
         """
@@ -94,6 +137,75 @@ class GALOIS_FIELD_128:
             polynomial ^= self._minimal_polynomial << shift
 
         return polynomial
+
+
+class GALOIS_POLY_128:
+    def __init__(self, coefficients: list[GALOIS_ELEMENT_128]):
+        self._coefficients = coefficients
+        self._minimal_polynomial = coefficients_to_min_polynom([128, 7, 2, 1, 0])
+
+    def __mul__(self, other: "GALOIS_POLY_128") -> "GALOIS_POLY_128":
+        """
+        Multiply two polynomials in GF(2^128)
+
+        other: the other polynomial
+
+        returns: the product
+        """
+        product = [
+            GALOIS_ELEMENT_128(0, mode="gcm") for _ in range(len(self._coefficients) + len(other._coefficients) - 1)
+        ]
+        # product = [0] * (len(self._coefficients) + len(other._coefficients) - 1)
+        for i, self_coeff in enumerate(self._coefficients):
+            for j, other_coeff in enumerate(other._coefficients):
+                product[i + j] = product[i + j] + self_coeff * other_coeff
+        return GALOIS_POLY_128(coefficients=product)
+
+    def __add__(self, other: "GALOIS_POLY_128") -> "GALOIS_POLY_128":
+        """
+        Add two polynomials in GF(2^128)
+
+        other: the other polynomial
+
+        returns: the sum
+        """
+        # pad the polynomials with zeros
+        self_coeff = self._coefficients
+        other_coeff = other._coefficients
+        max_len = max(len(self._coefficients), len(other._coefficients))
+        self_coeff.extend([GALOIS_ELEMENT_128(0, mode="gcm")] * (max_len - len(self_coeff)))
+        other_coeff.extend([GALOIS_ELEMENT_128(0, mode="gcm")] * (max_len - len(other_coeff)))
+
+        # add the coefficients
+        sum = [self_coeff + other_coeff for self_coeff, other_coeff in zip(self_coeff, other_coeff)]
+        return GALOIS_POLY_128(coefficients=sum)
+
+    def __pow__(self, exponent: int) -> "GALOIS_POLY_128":
+        """
+        Raise a polynomial to the power of another polynomial
+
+        exponent: the exponent
+
+        returns: the result
+        """
+        result = GALOIS_POLY_128(coefficients=[GALOIS_ELEMENT_128(0x80, mode="gcm")])  # 0x80 = x^0
+
+        # square and multiply
+        while exponent > 0:
+            if exponent % 2 == 1:
+                result *= self
+            self *= self
+            exponent >>= 1
+        return result
+
+    def __str__(self) -> str:
+        return f"{[str(coeff) for coeff in self._coefficients]}"
+
+    def to_bytes(self, byteorder: str = "little") -> bytes:
+        return [coeff.to_bytes(byteorder) for coeff in self._coefficients]
+
+    def to_hex(self, byteorder: str = "little") -> str:
+        return [coeff.to_bytes(byteorder).hex() for coeff in self._coefficients]
 
 
 class PADDING_ORACLE:
@@ -163,7 +275,7 @@ class PADDING_ORACLE:
             if padding_byte == 1:
                 temp_Q = q_n
             else:
-                temp_Q = q_n + known_padding  # TODO!
+                temp_Q = q_n + known_padding
 
             Qs_to_try.append(temp_Q.rjust(16, b"\x00"))
 
@@ -185,7 +297,7 @@ class PADDING_ORACLE:
         # check where the padding is correct
         positions = [index for index, byte in enumerate(response) if byte == 0x01]
 
-        # TODO check: edge case: 2 at rightmost byte
+        # edge case: 2 at rightmost byte
         if padding_byte == 1:
             if len(positions) > 1:
                 temp_Q = Qs_to_try[positions[0] * 16 : (positions[0] + 1) * 16]
@@ -374,10 +486,12 @@ class GCM_CRYPT:
         self.GHASH ^= input
 
         # GF multiply
-        gf = GALOIS_FIELD_128(min_poly_coefficients=[0, 1, 2, 7, 128], mode="gcm")
         H_int = int.from_bytes(self.auth_key, "little")
+        H_gf_ele = GALOIS_ELEMENT_128(H_int, mode="gcm")
+        ghash_gf_ele = GALOIS_ELEMENT_128(self.GHASH, mode="gcm")
 
-        self.GHASH = gf.multiply(a=(self.GHASH), b=(H_int))
+        ghash_gf_ele *= H_gf_ele
+        self.GHASH = ghash_gf_ele.get_block()
 
     def __auth_tag(self) -> int:
         """

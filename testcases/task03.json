@@ -1,0 +1,44 @@
+{
+    "testcases": {
+        "gfpoly_add_01": {
+            "action": "gfpoly_add",
+            "arguments": {
+                "A": [
+                    "NeverGonnaGiveYouUpAAA==",
+                    "NeverGonnaLetYouDownAA==",
+                    "NeverGonnaRunAroundAAA==",
+                    "AndDesertYouAAAAAAAAAA=="
+                ],
+                "B": [
+                    "KryptoanalyseAAAAAAAAA==",
+                    "DHBWMannheimAAAAAAAAAA=="
+                ]
+            }
+        },
+        "gfpoly_mul_01": {
+            "action": "gfpoly_mul",
+            "arguments": {
+                "A": [
+                    "JAAAAAAAAAAAAAAAAAAAAA==",
+                    "wAAAAAAAAAAAAAAAAAAAAA==",
+                    "ACAAAAAAAAAAAAAAAAAAAA=="
+                ],
+                "B": [
+                    "0AAAAAAAAAAAAAAAAAAAAA==",
+                    "IQAAAAAAAAAAAAAAAAAAAA=="
+                ]
+            }
+        },
+        "gfpoly_pow_01": {
+            "action": "gfpoly_pow",
+            "arguments": {
+                "A": [
+                    "JAAAAAAAAAAAAAAAAAAAAA==",
+                    "wAAAAAAAAAAAAAAAAAAAAA==",
+                    "ACAAAAAAAAAAAAAAAAAAAA=="
+                ],
+                "k": 3
+            }
+        }
+    }
+}
