@@ -87,7 +87,7 @@ class GALOIS_ELEMENT_128:
 
         return GALOIS_ELEMENT_128(value=result, mode=self._mode)
 
-    def __add__(self, other: "GALOIS_ELEMENT_128") -> "GALOIS_ELEMENT_128":  # TODO
+    def __add__(self, other: "GALOIS_ELEMENT_128") -> "GALOIS_ELEMENT_128":
         """
         Add two elements in GF(2^128)
 
@@ -121,6 +121,73 @@ class GALOIS_ELEMENT_128:
             polynomial ^= self._minimal_polynomial << shift
 
         return polynomial
+
+
+class GALOIS_POLY_128:
+    def __init__(self, coefficients: list[GALOIS_ELEMENT_128]):
+        self._coefficients = coefficients
+        self._minimal_polynomial = coefficients_to_min_polynom([128, 7, 2, 1, 0])
+
+    def __mul__(self, other: "GALOIS_POLY_128") -> "GALOIS_POLY_128":
+        """
+        Multiply two polynomials in GF(2^128)
+
+        other: the other polynomial
+
+        returns: the product
+        """
+        product = [
+            GALOIS_ELEMENT_128(0, mode="gcm") for _ in range(len(self._coefficients) + len(other._coefficients) - 1)
+        ]
+        # product = [0] * (len(self._coefficients) + len(other._coefficients) - 1)
+        for i, self_coeff in enumerate(self._coefficients):
+            for j, other_coeff in enumerate(other._coefficients):
+                product[i + j] = product[i + j] + self_coeff * other_coeff
+        return GALOIS_POLY_128(coefficients=product)
+
+    def __add__(self, other: "GALOIS_POLY_128") -> "GALOIS_POLY_128":
+        """
+        Add two polynomials in GF(2^128)
+
+        other: the other polynomial
+
+        returns: the sum
+        """
+        # pad the polynomials with zeros
+        self_coeff = self._coefficients
+        other_coeff = other._coefficients
+        max_len = max(len(self._coefficients), len(other._coefficients))
+        self_coeff.extend([GALOIS_ELEMENT_128(0, mode="gcm")] * (max_len - len(self_coeff)))
+        other_coeff.extend([GALOIS_ELEMENT_128(0, mode="gcm")] * (max_len - len(other_coeff)))
+
+        # add the coefficients
+        sum = [self_coeff + other_coeff for self_coeff, other_coeff in zip(self_coeff, other_coeff)]
+        return GALOIS_POLY_128(coefficients=sum)
+
+    def __pow__(self, exponent: int) -> "GALOIS_POLY_128":  # TODO
+        """
+        Raise a polynomial to the power of another polynomial
+
+        exponent: the exponent
+
+        returns: the result
+        """
+        result = GALOIS_POLY_128(coefficients=[1])
+        while exponent > 0:
+            if exponent % 2 == 1:
+                result *= self
+            self *= self
+            exponent >>= 1
+        return result
+
+    def __str__(self) -> str:
+        return f"{[str(coeff) for coeff in self._coefficients]}"
+
+    def to_bytes(self, byteorder: str = "little") -> bytes:
+        return [coeff.to_bytes(byteorder) for coeff in self._coefficients]
+
+    def to_hex(self, byteorder: str = "little") -> str:
+        return [coeff.to_bytes(byteorder).hex() for coeff in self._coefficients]
 
 
 class PADDING_ORACLE:

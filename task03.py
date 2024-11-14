@@ -1,4 +1,4 @@
-from classes import GALOIS_ELEMENT_128
+from classes import GALOIS_ELEMENT_128, GALOIS_POLY_128
 from helper import *
 
 
@@ -12,17 +12,15 @@ def gfpoly_add(args: dict) -> list[str]:
     # Convert byte arrays to GALOIS_ELEMENT_128 objects
     A = [GALOIS_ELEMENT_128(value=int.from_bytes(coeff), mode="gcm") for coeff in A_bytes]
     B = [GALOIS_ELEMENT_128(value=int.from_bytes(coeff), mode="gcm") for coeff in B_bytes]
-
-    # Pad shorter list with zeroes
-    max_len = max(len(A), len(B))
-    A.extend([GALOIS_ELEMENT_128(0, mode="gcm")] * (max_len - len(A)))
-    B.extend([GALOIS_ELEMENT_128(0, mode="gcm")] * (max_len - len(B)))
+    # Convert list of GALOIS_ELEMENT_128 objects to GALOIS_POLY_128 objects
+    A = GALOIS_POLY_128(A)
+    B = GALOIS_POLY_128(B)
 
     # * Element-wise addition
-    S = [a + b for a, b in zip(A, B)]
+    S = A + B
 
     # Convert result back to bytes and then to base64 strings
-    S_bytes = [_.to_bytes("big") for _ in S]
+    S_bytes = S.to_bytes("big")
     S_b64 = [bytes_to_base64(coeff) for coeff in S_bytes]
 
     return S_b64
@@ -36,19 +34,17 @@ def gfpoly_mul(args: dict) -> list[str]:
     A_bytes = [base64_to_bytes(coeff) for coeff in A_b64]
     B_bytes = [base64_to_bytes(coeff) for coeff in B_b64]
     # Convert byte arrays to GALOIS_ELEMENT_128 objects
-    A = [GALOIS_ELEMENT_128(value=int.from_bytes(coeff), mode="gcm") for coeff in A_bytes]
-    B = [GALOIS_ELEMENT_128(value=int.from_bytes(coeff), mode="gcm") for coeff in B_bytes]
+    A = [GALOIS_ELEMENT_128(value=int.from_bytes(coeff, "little"), mode="gcm") for coeff in A_bytes]
+    B = [GALOIS_ELEMENT_128(value=int.from_bytes(coeff, "little"), mode="gcm") for coeff in B_bytes]
+    # Convert list of GALOIS_ELEMENT_128 objects to GALOIS_POLY_128 objects
+    A = GALOIS_POLY_128(A)
+    B = GALOIS_POLY_128(B)
 
-    # Inintialize Product with maximum possible length
-    P = [GALOIS_ELEMENT_128(value=0, mode="gcm") for _ in range(len(A) + len(B) - 1)]
-
-    # * Polynomial multiplication
-    for i in range(len(A)):
-        for j in range(len(B)):
-            P[i + j] = P[i + j] + (A[i] * B[j])
+    # # * Polynomial multiplication
+    P = A * B
 
     # Convert result back to bytes and then to base64 strings
-    P_bytes = [int.to_bytes(_.get_block(), 16, "big") for _ in P]
+    P_bytes = P.to_bytes()
     P_b64 = [bytes_to_base64(coeff) for coeff in P_bytes]
 
     return P_b64
