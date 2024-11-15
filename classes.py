@@ -108,7 +108,6 @@ class GALOIS_ELEMENT_128:
         """
         a = self
         result = GALOIS_ELEMENT_128(0x80, mode=a._mode)
-        print(result.to_bytes())
         while exponent > 0:
             if exponent & 1:
                 result *= a
@@ -129,11 +128,6 @@ class GALOIS_ELEMENT_128:
         """
         if other.get_block() == 0:
             raise ValueError("Division by zero")
-
-        print(self)
-        print(other)
-        print(other ** (2 ** (128) - 2))
-        print(self * (other ** (2 ** (128) - 2)))
 
         divisor = other ** (2**128 - 2)
         quotient = self * divisor
