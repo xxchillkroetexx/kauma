@@ -106,16 +106,39 @@ class GALOIS_ELEMENT_128:
 
         returns: the result
         """
-        result = GALOIS_ELEMENT_128(1, mode=self._mode)
+        a = self
+        result = GALOIS_ELEMENT_128(0x80, mode=a._mode)
+        print(result.to_bytes())
         while exponent > 0:
-            if exponent % 2 == 1:
-                result *= self
-            self *= self
+            if exponent & 1:
+                result *= a
+            a *= a
             exponent >>= 1
         return result
 
     def __str__(self) -> str:
         return f"{hex(self._value)}"
+
+    def __truediv__(self, other: "GALOIS_ELEMENT_128") -> "GALOIS_ELEMENT_128":
+        """
+        Divide two elements in GF(2^128)
+
+        other: the other element
+
+        returns: the qoutient
+        """
+        if other.get_block() == 0:
+            raise ValueError("Division by zero")
+
+        print(self)
+        print(other)
+        print(other ** (2 ** (128) - 2))
+        print(self * (other ** (2 ** (128) - 2)))
+
+        divisor = other ** (2**128 - 2)
+        quotient = self * divisor
+
+        return quotient
 
     def to_bytes(self, byteorder: str = "little") -> bytes:
         return self._value.to_bytes(16, byteorder)
@@ -205,6 +228,9 @@ class GALOIS_POLY_128:
 
     def to_hex(self, byteorder: str = "little") -> str:
         return [coeff.to_bytes(byteorder).hex() for coeff in self._coefficients]
+
+    def get_coefficients(self) -> list[int]:
+        return [coeff.get_block() for coeff in self._coefficients]
 
 
 class PADDING_ORACLE:
