@@ -2,7 +2,7 @@ from classes import GALOIS_ELEMENT_128, GALOIS_POLY_128
 from helper import *
 
 
-def gfpoly_add(args: dict) -> list[str]:
+def gfpoly_add(args: dict) -> list[str]:  # TODO: check edge cases (e.g. empty list, different lengths)
     A_b64 = args["A"]
     B_b64 = args["B"]
 
@@ -26,7 +26,7 @@ def gfpoly_add(args: dict) -> list[str]:
     return S_b64
 
 
-def gfpoly_mul(args: dict) -> list[str]:
+def gfpoly_mul(args: dict) -> list[str]:  # TODO: check edge cases (e.g. empty list, different lengths)
     A_b64 = args["A"]
     B_b64 = args["B"]
 
@@ -69,3 +69,15 @@ def gfpoly_pow(args: dict) -> list[str]:
     Z_b64 = [bytes_to_base64(term) for term in Z_bytes]
 
     return Z_b64
+
+
+def gfdiv(args: dict) -> bytes:
+    a = base64_to_bytes(args["a"])
+    b = base64_to_bytes(args["b"])
+    a = GALOIS_ELEMENT_128(value=int.from_bytes(a), mode="gcm")
+    b = GALOIS_ELEMENT_128(value=int.from_bytes(b), mode="gcm")
+
+    q = a / b
+
+    q_bytes = q.to_bytes()
+    return q_bytes

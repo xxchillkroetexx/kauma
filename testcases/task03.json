@@ -39,6 +39,13 @@
                 ],
                 "k": 3
             }
+        },
+        "gfdiv": {
+            "action": "gfdiv",
+            "arguments": {
+                "a": "JAAAAAAAAAAAAAAAAAAAAA==",
+                "b": "wAAAAAAAAAAAAAAAAAAAAA=="
+            }
         }
     }
 }
