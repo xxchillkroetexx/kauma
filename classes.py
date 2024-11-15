@@ -155,7 +155,6 @@ class GALOIS_POLY_128:
         product = [
             GALOIS_ELEMENT_128(0, mode="gcm") for _ in range(len(self._coefficients) + len(other._coefficients) - 1)
         ]
-        # product = [0] * (len(self._coefficients) + len(other._coefficients) - 1)
         for i, self_coeff in enumerate(self._coefficients):
             for j, other_coeff in enumerate(other._coefficients):
                 product[i + j] = product[i + j] + self_coeff * other_coeff
