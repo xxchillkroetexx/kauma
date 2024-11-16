@@ -94,7 +94,7 @@ def evaluate_testcase(testcase: dict) -> dict:
                 raise ValueError(f"Error in gfpoly_mul: {e}")
         case "gfpoly_pow":
             try:
-                return {"R": gfpoly_pow(testcase["arguments"])}
+                return {"Z": gfpoly_pow(testcase["arguments"])}
             except ValueError as e:
                 raise ValueError(f"Error in gfpoly_pow: {e}")
         case "gfdiv":
