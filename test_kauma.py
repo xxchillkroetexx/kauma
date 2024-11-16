@@ -12,8 +12,6 @@ def test_01_evaluate_testcases():
 
     assert evaluate_testcases(testcase_json=testcases_json) == output_json
 
-    pass
-
 
 def test_02_evaluate_testcases():
 
@@ -23,8 +21,6 @@ def test_02_evaluate_testcases():
         output_json = json.load(file)
 
     assert evaluate_testcases(testcase_json=testcases_json) == output_json
-
-    pass
 
 
 def test_03_evaluate_testcases():
@@ -36,8 +32,6 @@ def test_03_evaluate_testcases():
 
     assert evaluate_testcases(testcase_json=testcases_json) == output_json
 
-    pass
-
 
 def test_gfmul():
     with open("testcases/gfmul_args.json", "r") as file:
@@ -47,40 +41,32 @@ def test_gfmul():
 
     assert evaluate_testcases(testcase_json=testcases_json) == output_json
 
-    pass
-
 
 def test_gcm_block_poly():
-    with open("testcases/gcm_block_poly.json", "r") as file:
+    with open("testcases/gcm/gcm_block_poly.json", "r") as file:
         testcases_json = json.load(file)
-    with open("testcases/gcm_block_poly_output.json", "r") as file:
+    with open("testcases/gcm/gcm_block_poly_output.json", "r") as file:
         output_json = json.load(file)
 
     assert evaluate_testcases(testcase_json=testcases_json) == output_json
-
-    pass
 
 
 def test_gcm_encrypt():
-    with open("testcases/gcm_encrypt_in.json", "r") as file:
+    with open("testcases/gcm/gcm_encrypt_in.json", "r") as file:
         testcases_json = json.load(file)
-    with open("testcases/gcm_encrypt_out.json", "r") as file:
+    with open("testcases/gcm/gcm_encrypt_out.json", "r") as file:
         output_json = json.load(file)
 
     assert evaluate_testcases(testcase_json=testcases_json) == output_json
-
-    pass
 
 
 def test_gcm_decrypt():
-    with open("testcases/gcm_decrypt_in.json", "r") as file:
+    with open("testcases/gcm/gcm_decrypt_in.json", "r") as file:
         testcases_json = json.load(file)
-    with open("testcases/gcm_decrypt_out.json", "r") as file:
+    with open("testcases/gcm/gcm_decrypt_out.json", "r") as file:
         output_json = json.load(file)
 
     assert evaluate_testcases(testcase_json=testcases_json) == output_json
-
-    pass
 
 
 def test_gfdiv():
@@ -91,7 +77,14 @@ def test_gfdiv():
 
     assert evaluate_testcases(testcase_json=testcases_json) == output_json
 
-    pass
+
+def test_gfpoly_mul():
+    with open("testcases/gfpoly/gfpoly_pow_in.json", "r") as file:
+        testcases_json = json.load(file)
+    with open("testcases/gfpoly/gfpoly_pow_out.json", "r") as file:
+        output_json = json.load(file)
+
+    assert evaluate_testcases(testcase_json=testcases_json) == output_json
 
 
 if __name__ == "__main__":
