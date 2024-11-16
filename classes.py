@@ -71,15 +71,15 @@ class GALOIS_ELEMENT_128:
         if other._mode == "gcm":
             other_val_copy = reverse_bits_in_bytes(other_val_copy)
         result = 0
+
         while other_val_copy:
             if other_val_copy & 1:
                 result ^= self_val_copy
             self_val_copy <<= 1
             other_val_copy >>= 1
-            self_val_copy = self.reduce_polynomial(polynomial=self_val_copy)
-
-        # reduce the result one last time
-        result = self.reduce_polynomial(polynomial=result)
+            # reduce the result if necessary
+            if self_val_copy & (1 << 128):
+                self_val_copy ^= self._minimal_polynomial
 
         # convert the result back to gcm mode
         if self._mode == "gcm":
@@ -108,7 +108,7 @@ class GALOIS_ELEMENT_128:
         """
         a = self
         result = GALOIS_ELEMENT_128(0x80, mode=a._mode)
-        while exponent > 0:
+        while exponent:
             if exponent & 1:
                 result *= a
             a *= a
@@ -129,31 +129,23 @@ class GALOIS_ELEMENT_128:
         if other.get_block() == 0:
             raise ValueError("Division by zero")
 
-        divisor = other ** (2**128 - 2)
-        quotient = self * divisor
+        below = other.inverse()
+        result = self * below
+        return result
 
-        return quotient
+    def inverse(self) -> "GALOIS_ELEMENT_128":
+        """
+        Calculate the multiplicative inverse of an element in GF(2^128)
+
+        returns: the multiplicative inverse
+        """
+        return self ** (2**128 - 2)
 
     def to_bytes(self, byteorder: str = "little") -> bytes:
         return self._value.to_bytes(16, byteorder)
 
     def get_block(self) -> int:
         return self._value
-
-    def reduce_polynomial(self, polynomial: int) -> int:
-        """
-        Reduce a polynomial using the minimal polynomial
-
-        a: the polynomial
-        minimal_polynomial: the non-reducable polynomial
-
-        returns: the reduced polynomial
-        """
-        while polynomial.bit_length() >= self._minimal_polynomial.bit_length():
-            shift = polynomial.bit_length() - self._minimal_polynomial.bit_length()
-            polynomial ^= self._minimal_polynomial << shift
-
-        return polynomial
 
 
 class GALOIS_POLY_128:

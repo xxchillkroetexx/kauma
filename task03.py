@@ -74,8 +74,8 @@ def gfpoly_pow(args: dict) -> list[str]:
 def gfdiv(args: dict) -> bytes:
     a = base64_to_bytes(args["a"])
     b = base64_to_bytes(args["b"])
-    a = GALOIS_ELEMENT_128(value=int.from_bytes(a), mode="gcm")
-    b = GALOIS_ELEMENT_128(value=int.from_bytes(b), mode="gcm")
+    a = GALOIS_ELEMENT_128(value=int.from_bytes(a, "little"), mode="gcm")
+    b = GALOIS_ELEMENT_128(value=int.from_bytes(b, "little"), mode="gcm")
 
     q = a / b
 
