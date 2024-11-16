@@ -1,0 +1,25 @@
+{
+    "testcases": {
+        "gfdiv_001": {
+            "action": "gfdiv",
+            "arguments": {
+                "a": "JAAAAAAAAAAAAAAAAAAAAA==",
+                "b": "wAAAAAAAAAAAAAAAAAAAAA=="
+            }
+        },
+        "gfdiv_002": {
+            "action": "gfdiv",
+            "arguments": {
+                "a": "JAAAAAAAAAAAAAAAAAAAAA==",
+                "b": "ACAAAAAAAAAAAAAAAAAAAA=="
+            }
+        },
+        "gfdiv_003": {
+            "action": "gfdiv",
+            "arguments": {
+                "a": "wAAAAAAAAAAAAAAAAAAAAA==",
+                "b": "ACAAAAAAAAAAAAAAAAAAAA=="
+            }
+        }
+    }
+}

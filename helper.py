@@ -201,14 +201,24 @@ def reverse_bits_in_bytes(n, byte_size=16):
 
     returns: the integer with the bits reversed
     """
-    # Initialize the result
     result = 0
-    # Iterate over each byte in the integer
-    for i in range(byte_size):
-        # Extract the current byte
-        current_byte = (n >> (i * 8)) & 0xFF
-        # Reverse bits in the current byte
-        reversed_byte = int("{:08b}".format(current_byte)[::-1], 2)
-        # Place the reversed byte back into its original position
-        result |= reversed_byte << (i * 8)
+    shift = 0
+
+    while n > 0:
+        # Get the lowest 8 bits of n
+        byte = n & 0xFF
+
+        # Swap the 4-bit groups of the byte -> Example: 10100111
+        rotated_byte = ((byte & 0b11110000) >> 4) | ((byte & 0b00001111) << 4)  # -> 01111010
+        # Swap the 2-bit groups of the byte in their respective 4-bit groups
+        rotated_byte = ((rotated_byte & 0b11001100) >> 2) | ((rotated_byte & 0b00110011) << 2)  # -> 11011010
+        # Swap the 1-bit groups of the byte in their respective 4-bit groups
+        rotated_byte = ((rotated_byte & 0b10101010) >> 1) | ((rotated_byte & 0b01010101) << 1)  # -> 11100101
+
+        # Add the rotated byte to the result
+        result |= rotated_byte << shift
+        shift += 8
+
+        # Shift n to the right by 8 bits
+        n >>= 8
     return result

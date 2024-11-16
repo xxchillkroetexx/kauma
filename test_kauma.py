@@ -83,5 +83,16 @@ def test_gcm_decrypt():
     pass
 
 
+def test_gfdiv():
+    with open("testcases/gfdiv_in.json", "r") as file:
+        testcases_json = json.load(file)
+    with open("testcases/gfdiv_out.json", "r") as file:
+        output_json = json.load(file)
+
+    assert evaluate_testcases(testcase_json=testcases_json) == output_json
+
+    pass
+
+
 if __name__ == "__main__":
     pytest.main()
