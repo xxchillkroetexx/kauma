@@ -47,11 +47,10 @@ class SEA128:
 
 
 class GALOIS_ELEMENT_128:
-    def __init__(self, value: int, mode: str):
+    def __init__(self, value: int):
         if not isinstance(value, int):
             raise ValueError("Value must be an integer", type(value), value)
         self._value = value
-        self._mode = mode
         self._minimal_polynomial = coefficients_to_min_polynom([128, 7, 2, 1, 0])
 
     def __mul__(self, other: "GALOIS_ELEMENT_128") -> "GALOIS_ELEMENT_128":
@@ -66,10 +65,6 @@ class GALOIS_ELEMENT_128:
         self_val_copy = self._value
         other_val_copy = other._value
 
-        if self._mode == "gcm":
-            self_val_copy = reverse_bits_in_bytes(self_val_copy)
-        if other._mode == "gcm":
-            other_val_copy = reverse_bits_in_bytes(other_val_copy)
         result = 0
 
         while other_val_copy:
@@ -81,11 +76,7 @@ class GALOIS_ELEMENT_128:
             if self_val_copy & (1 << 128):
                 self_val_copy ^= self._minimal_polynomial
 
-        # convert the result back to gcm mode
-        if self._mode == "gcm":
-            result = reverse_bits_in_bytes(result)
-
-        return GALOIS_ELEMENT_128(value=result, mode=self._mode)
+        return GALOIS_ELEMENT_128(value=result)
 
     def __add__(self, other: "GALOIS_ELEMENT_128") -> "GALOIS_ELEMENT_128":
         """
@@ -96,7 +87,17 @@ class GALOIS_ELEMENT_128:
         returns: the sum
         """
         sum = self._value ^ other._value
-        return GALOIS_ELEMENT_128(value=sum, mode=self._mode)
+        return GALOIS_ELEMENT_128(value=sum)
+
+    def __sub__(self, other: "GALOIS_ELEMENT_128") -> "GALOIS_ELEMENT_128":
+        """
+        Subtract two elements in GF(2^128)
+
+        other: the other element
+
+        returns: the difference
+        """
+        return self + other
 
     def __pow__(self, exponent: int) -> "GALOIS_ELEMENT_128":
         """
@@ -107,7 +108,7 @@ class GALOIS_ELEMENT_128:
         returns: the result
         """
         a = self
-        result = GALOIS_ELEMENT_128(0x80, mode=a._mode)
+        result = GALOIS_ELEMENT_128(0x01)
         while exponent:
             if exponent & 1:
                 result *= a
@@ -118,7 +119,7 @@ class GALOIS_ELEMENT_128:
     def __str__(self) -> str:
         return f"{hex(self._value)}"
 
-    def __truediv__(self, other: "GALOIS_ELEMENT_128") -> "GALOIS_ELEMENT_128":
+    def __floordiv__(self, other: "GALOIS_ELEMENT_128") -> "GALOIS_ELEMENT_128":
         """
         Divide two elements in GF(2^128)
 
@@ -161,13 +162,13 @@ class GALOIS_POLY_128:
 
         returns: the product
         """
-        product = [
-            GALOIS_ELEMENT_128(0, mode="gcm") for _ in range(len(self._coefficients) + len(other._coefficients) - 1)
-        ]
+        product = [GALOIS_ELEMENT_128(0) for _ in range(len(self._coefficients) + len(other._coefficients) - 1)]
         for i, self_coeff in enumerate(self._coefficients):
             for j, other_coeff in enumerate(other._coefficients):
                 product[i + j] = product[i + j] + self_coeff * other_coeff
-        return GALOIS_POLY_128(coefficients=product)
+
+        return_product = GALOIS_POLY_128(coefficients=product)
+        return return_product
 
     def __add__(self, other: "GALOIS_POLY_128") -> "GALOIS_POLY_128":
         """
@@ -181,12 +182,28 @@ class GALOIS_POLY_128:
         self_coeff = self._coefficients
         other_coeff = other._coefficients
         max_len = max(len(self._coefficients), len(other._coefficients))
-        self_coeff.extend([GALOIS_ELEMENT_128(0, mode="gcm")] * (max_len - len(self_coeff)))
-        other_coeff.extend([GALOIS_ELEMENT_128(0, mode="gcm")] * (max_len - len(other_coeff)))
+        self_coeff.extend([GALOIS_ELEMENT_128(0)] * (max_len - len(self_coeff)))
+        other_coeff.extend([GALOIS_ELEMENT_128(0)] * (max_len - len(other_coeff)))
 
         # add the coefficients
         sum = [self_coeff + other_coeff for self_coeff, other_coeff in zip(self_coeff, other_coeff)]
-        return GALOIS_POLY_128(coefficients=sum)
+        return_sum = GALOIS_POLY_128(coefficients=sum)
+
+        # print("pre_clean: ", return_sum)
+        return_sum._clean_zeroes()
+        # print("post_clean: ", return_sum)
+
+        return return_sum
+
+    def __sub__(self, other: "GALOIS_POLY_128") -> "GALOIS_POLY_128":
+        """
+        Subtract two polynomials in GF(2^128)
+
+        other: the other polynomial
+
+        returns: the difference
+        """
+        return self + other
 
     def __pow__(self, exponent: int) -> "GALOIS_POLY_128":
         """
@@ -196,7 +213,7 @@ class GALOIS_POLY_128:
 
         returns: the result
         """
-        result = GALOIS_POLY_128(coefficients=[GALOIS_ELEMENT_128(0x80, mode="gcm")])  # 0x80 = x^0
+        result = GALOIS_POLY_128(coefficients=[GALOIS_ELEMENT_128(0x01)])
 
         # square and multiply
         while exponent > 0:
@@ -205,6 +222,66 @@ class GALOIS_POLY_128:
             self *= self
             exponent >>= 1
         return result
+
+    def __floordiv__(self, other: "GALOIS_POLY_128") -> tuple["GALOIS_POLY_128", "GALOIS_POLY_128"]:
+        """
+        Divide with remainder (DIVMOD) in GF(2^128)
+
+        other: the other polynomial
+
+        returns: the quotient and the remainder
+        """
+        if other._coefficients == [GALOIS_ELEMENT_128(0)]:
+            raise ValueError("Division by zero")
+
+        # initialize the quotient and the remainder
+        quotient = list()
+        remainder = self
+
+        # arrange powers in descending order
+        # divident = self
+        # divisor = other
+        oben = self._coefficients.copy()
+        oben = oben[::-1]
+        unten = other._coefficients.copy()
+        unten = unten[::-1]
+
+        for i in range(len(oben) - len(unten) + 1):
+            print()
+            print("oben:  ", [str(coeff) for coeff in oben])
+            print("unten:   ", [str(coeff) for coeff in unten])
+            print()
+            print("i: ", i)
+            print("oben[i]: ", oben[i])
+            print("unten[i]: ", unten[i])
+
+            obtained_term = oben[i] // unten[0]
+            print("obtained_term: ", obtained_term)
+
+            quotient.append(obtained_term)
+            print("quotient: ", [str(coeff) for coeff in quotient])
+
+            temp = GALOIS_POLY_128(coefficients=[quotient[i]]) * GALOIS_POLY_128(coefficients=unten)
+            print("temp:     ", temp)
+
+            rest = GALOIS_POLY_128(coefficients=oben) - temp
+            rest = rest._coefficients
+
+            print("rest:     ", [str(coeff) for coeff in rest])
+
+        print()
+        if len(quotient) == 0:
+            quotient = [GALOIS_ELEMENT_128(0, mode="gcm")]
+        # arrange the coefficients in ascending order of powers
+        quotient.reverse()
+        quotient = GALOIS_POLY_128(coefficients=quotient)
+        remainder = GALOIS_POLY_128(coefficients=oben)
+
+        # return quotient, remainder
+        print("quotient:  ", quotient)
+        print("quotient_expected: ", 0x9C02008020080200802008020080200A.to_bytes(16, "little").hex())
+        print("remainder: ", remainder)
+        return quotient, remainder
 
     def __str__(self) -> str:
         return f"{[str(coeff) for coeff in self._coefficients]}"
@@ -217,6 +294,10 @@ class GALOIS_POLY_128:
 
     def get_coefficients(self) -> list[int]:
         return [coeff.get_block() for coeff in self._coefficients]
+
+    def _clean_zeroes(self):
+        while self._coefficients[0].get_block() == 0 and len(self._coefficients) > 1:
+            self._coefficients.pop(0)
 
 
 class PADDING_ORACLE:
@@ -498,11 +579,12 @@ class GCM_CRYPT:
 
         # GF multiply
         H_int = int.from_bytes(self.auth_key, "little")
-        H_gf_ele = GALOIS_ELEMENT_128(H_int, mode="gcm")
-        ghash_gf_ele = GALOIS_ELEMENT_128(self.GHASH, mode="gcm")
+        H_gf_ele = GALOIS_ELEMENT_128(reverse_bits_in_bytes(H_int))
+        ghash_gf_ele = GALOIS_ELEMENT_128(reverse_bits_in_bytes(self.GHASH))
 
         ghash_gf_ele *= H_gf_ele
-        self.GHASH = ghash_gf_ele.get_block()
+
+        self.GHASH = reverse_bits_in_bytes(ghash_gf_ele.get_block())
 
     def __auth_tag(self) -> int:
         """

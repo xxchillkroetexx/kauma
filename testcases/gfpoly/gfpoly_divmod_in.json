@@ -1,6 +1,6 @@
 {
     "testcases": {
-        "gfpoly_divmod_001": {
+        "gfpoly_divmod_01": {
             "action": "gfpoly_divmod",
             "arguments": {
                 "A": [
