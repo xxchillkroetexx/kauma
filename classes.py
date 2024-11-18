@@ -262,7 +262,7 @@ class GALOIS_POLY_128:
 
         print()
         if len(quotient) == 0:
-            quotient = [GALOIS_ELEMENT_128(0, mode="gcm")]
+            quotient = [GALOIS_ELEMENT_128(0)]
         # arrange the coefficients in ascending order of powers
         quotient = GALOIS_POLY_128(coefficients=quotient[::-1])
         remainder = GALOIS_POLY_128(coefficients=remainder[::-1])
