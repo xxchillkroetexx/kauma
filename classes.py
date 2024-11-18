@@ -167,7 +167,10 @@ class GALOIS_POLY_128:
         for i, self_coeff in enumerate(self._coefficients):
             for j, other_coeff in enumerate(other._coefficients):
                 product[i + j] = product[i + j] + self_coeff * other_coeff
-        return GALOIS_POLY_128(coefficients=product)
+
+        return_product = GALOIS_POLY_128(coefficients=product)
+        return_product._clean_zeroes()
+        return return_product
 
     def __add__(self, other: "GALOIS_POLY_128") -> "GALOIS_POLY_128":
         """
@@ -217,6 +220,10 @@ class GALOIS_POLY_128:
 
     def get_coefficients(self) -> list[int]:
         return [coeff.get_block() for coeff in self._coefficients]
+
+    def _clean_zeroes(self):
+        while self._coefficients[-1].get_block() == 0 and len(self._coefficients) > 1:
+            self._coefficients.pop()
 
 
 class PADDING_ORACLE:
