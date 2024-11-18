@@ -5,6 +5,7 @@ from helper import (
     poly2block_gcm,
     poly2block_xex,
     base64_to_bytes,
+    reverse_bits_in_bytes,
 )
 
 
@@ -82,14 +83,15 @@ def gfmul(args: dict) -> bytes:
     b_int = int.from_bytes(b, "little")
     match args["semantic"]:
         case "xex":
-            a = GALOIS_ELEMENT_128(a_int, mode="xex")
-            b = GALOIS_ELEMENT_128(b_int, mode="xex")
+            a = GALOIS_ELEMENT_128(a_int)
+            b = GALOIS_ELEMENT_128(b_int)
             product = a * b
         case "gcm":
-            a = GALOIS_ELEMENT_128(a_int, mode="gcm")
-            b = GALOIS_ELEMENT_128(b_int, mode="gcm")
+            a = GALOIS_ELEMENT_128(reverse_bits_in_bytes(a_int))
+            b = GALOIS_ELEMENT_128(reverse_bits_in_bytes(b_int))
             product = a * b
-            pass
+            product = GALOIS_ELEMENT_128(reverse_bits_in_bytes(product.get_block()))
+
     return product.to_bytes()
 
 
@@ -157,7 +159,7 @@ def xex(tweak: bytes, key: bytes, input: bytes, mode: str) -> bytes:
     key2 = key[16:]
 
     ALPHA = poly2block_xex([1])
-    ALPHA_gf_ele = GALOIS_ELEMENT_128(int.from_bytes(ALPHA, "little"), mode="xex")
+    ALPHA_gf_ele = GALOIS_ELEMENT_128(int.from_bytes(ALPHA, "little"))
 
     tweaked_key2 = SEA128(key=key2).encrypt(input=tweak)
     out_blocks = []
@@ -190,7 +192,7 @@ def xex(tweak: bytes, key: bytes, input: bytes, mode: str) -> bytes:
 
         if block_index + 16 < len(input):
             # # Multiply tweaked_key2 by ALPHA in GF(2^128)
-            tweaked_key2_gf_element = GALOIS_ELEMENT_128(int.from_bytes(tweaked_key2, "little"), mode="xex")
+            tweaked_key2_gf_element = GALOIS_ELEMENT_128(int.from_bytes(tweaked_key2, "little"))
             tweaked_key2_gf_element = tweaked_key2_gf_element * ALPHA_gf_ele
 
             tweaked_key2 = tweaked_key2_gf_element.to_bytes("little")  # Convert back to bytes

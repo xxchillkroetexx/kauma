@@ -192,7 +192,7 @@ def coefficients_to_min_polynom(coefficients: list) -> int:
     return minimal_polynomial
 
 
-def reverse_bits_in_bytes(n, byte_size=16):
+def reverse_bits_in_bytes(n):
     """
     Reverse the bits in a 16 byte integer
 

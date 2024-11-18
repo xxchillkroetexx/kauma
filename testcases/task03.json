@@ -40,11 +40,25 @@
                 "k": 3
             }
         },
-        "gfdiv": {
+        "gfdiv_01": {
             "action": "gfdiv",
             "arguments": {
                 "a": "JAAAAAAAAAAAAAAAAAAAAA==",
                 "b": "wAAAAAAAAAAAAAAAAAAAAA=="
+            }
+        },
+        "gfpoly_divmod_01": {
+            "action": "gfpoly_divmod",
+            "arguments": {
+                "A": [
+                    "JAAAAAAAAAAAAAAAAAAAAA==",
+                    "wAAAAAAAAAAAAAAAAAAAAA==",
+                    "ACAAAAAAAAAAAAAAAAAAAA=="
+                ],
+                "B": [
+                    "0AAAAAAAAAAAAAAAAAAAAA==",
+                    "IQAAAAAAAAAAAAAAAAAAAA=="
+                ]
             }
         }
     }

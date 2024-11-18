@@ -79,9 +79,27 @@ def test_gfdiv():
 
 
 def test_gfpoly_mul():
-    with open("testcases/gfpoly/gfpoly_pow_in.json", "r") as file:
+    with open("testcases/gfpoly/gfpoly_mul_in.json", "r") as file:
         testcases_json = json.load(file)
-    with open("testcases/gfpoly/gfpoly_pow_out.json", "r") as file:
+    with open("testcases/gfpoly/gfpoly_mul_out.json", "r") as file:
+        output_json = json.load(file)
+
+    assert evaluate_testcases(testcase_json=testcases_json) == output_json
+
+
+def test_gfpoly_pow():
+    with open("testcases/gfpoly/gfpoly_pow_in_.json", "r") as file:
+        testcases_json = json.load(file)
+    with open("testcases/gfpoly/gfpoly_pow_out_.json", "r") as file:
+        output_json = json.load(file)
+
+    assert evaluate_testcases(testcase_json=testcases_json) == output_json
+
+
+def test_gfpoly_divmod():
+    with open("testcases/gfpoly/gfpoly_divmod_in.json", "r") as file:
+        testcases_json = json.load(file)
+    with open("testcases/gfpoly/gfpoly_divmod_out.json", "r") as file:
         output_json = json.load(file)
 
     assert evaluate_testcases(testcase_json=testcases_json) == output_json
