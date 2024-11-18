@@ -102,11 +102,11 @@ def evaluate_testcase(testcase: dict) -> dict:
                 return {"q": bytes_to_base64(gfdiv(testcase["arguments"]))}
             except ValueError as e:
                 raise ValueError(f"Error in gfdiv: {e}")
-        # case "gfpoly_divmod":
-        #     try:
-        #         return gfpoly_divmod(testcase["arguments"])
-        #     except ValueError as e:
-        #         raise ValueError(f"Error in gfpoly_divmod: {e}")
+        case "gfpoly_divmod":
+            try:
+                return gfpoly_divmod(testcase["arguments"])
+            except ValueError as e:
+                raise ValueError(f"Error in gfpoly_divmod: {e}")
 
         case _:
             raise ValueError("Invalid action")

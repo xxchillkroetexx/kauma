@@ -236,51 +236,41 @@ class GALOIS_POLY_128:
 
         # initialize the quotient and the remainder
         quotient = list()
-        remainder = self
+        remainder = self.get_coefficients_GF_ELEMENT()[::-1]
+        unten = other.get_coefficients_GF_ELEMENT()[::-1]
 
-        # arrange powers in descending order
-        # divident = self
-        # divisor = other
-        oben = self._coefficients.copy()
-        oben = oben[::-1]
-        unten = other._coefficients.copy()
-        unten = unten[::-1]
+        for i in range(len(self) - len(other) + 1):
+            # print()
+            # print("remainder:", [str(coeff) for coeff in remainder])
+            # print("unten:    ", [str(coeff) for coeff in unten])
+            # print()
+            # print("i: ", i)
+            # print("remainder[i]:", remainder[i])
+            # print("unten[i]:    ", unten[0])
 
-        for i in range(len(oben) - len(unten) + 1):
-            print()
-            print("oben:  ", [str(coeff) for coeff in oben])
-            print("unten:   ", [str(coeff) for coeff in unten])
-            print()
-            print("i: ", i)
-            print("oben[i]: ", oben[i])
-            print("unten[i]: ", unten[i])
-
-            obtained_term = oben[i] // unten[0]
-            print("obtained_term: ", obtained_term)
+            obtained_term = remainder[0] // unten[0]
+            # print("obtained_term: ", obtained_term)
 
             quotient.append(obtained_term)
-            print("quotient: ", [str(coeff) for coeff in quotient])
+            # print("quotient: ", [str(coeff) for coeff in quotient])
 
             temp = GALOIS_POLY_128(coefficients=[quotient[i]]) * GALOIS_POLY_128(coefficients=unten)
-            print("temp:     ", temp)
+            # print("temp:     ", temp)
 
-            rest = GALOIS_POLY_128(coefficients=oben) - temp
-            rest = rest._coefficients
-
-            print("rest:     ", [str(coeff) for coeff in rest])
+            remainder = (GALOIS_POLY_128(coefficients=remainder) - temp).get_coefficients_GF_ELEMENT()
+            # print("remainder:", [str(coeff) for coeff in remainder])
 
         print()
         if len(quotient) == 0:
             quotient = [GALOIS_ELEMENT_128(0, mode="gcm")]
         # arrange the coefficients in ascending order of powers
-        quotient.reverse()
-        quotient = GALOIS_POLY_128(coefficients=quotient)
-        remainder = GALOIS_POLY_128(coefficients=oben)
+        quotient = GALOIS_POLY_128(coefficients=quotient[::-1])
+        remainder = GALOIS_POLY_128(coefficients=remainder[::-1])
 
         # return quotient, remainder
-        print("quotient:  ", quotient)
-        print("quotient_expected: ", 0x9C02008020080200802008020080200A.to_bytes(16, "little").hex())
-        print("remainder: ", remainder)
+        # print("quotient:  ", quotient)
+        # print("quotient_expected: ", 0x9C02008020080200802008020080200A.to_bytes(16, "little").hex())
+        # print("remainder: ", remainder)
         return quotient, remainder
 
     def __str__(self) -> str:
@@ -295,9 +285,15 @@ class GALOIS_POLY_128:
     def get_coefficients(self) -> list[int]:
         return [coeff.get_block() for coeff in self._coefficients]
 
+    def get_coefficients_GF_ELEMENT(self) -> list[GALOIS_ELEMENT_128]:
+        return self._coefficients
+
     def _clean_zeroes(self):
         while self._coefficients[0].get_block() == 0 and len(self._coefficients) > 1:
             self._coefficients.pop(0)
+
+    def __len__(self):
+        return len(self._coefficients)
 
 
 class PADDING_ORACLE:
