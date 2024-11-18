@@ -10,6 +10,47 @@
                 ],
                 "k": 3
             }
+        },
+        "gfpoly_pow_02": {
+            "action": "gfpoly_pow",
+            "arguments": {
+                "A": [
+                    "P/4JGAAglCDiLCMvzLoA9g==",
+                    "X4ip1XuGB/z1D5el0wPFwg==",
+                    "LkwigN1ju8vKhx9ncWTQxw==",
+                    "x161LDmlHHh2yrt8wv9ooQ==",
+                    "6AbLf1Y/EIGs8kPWk7S0DQ==",
+                    "Wz+CP+Pla1qMu7qXSYg2Vg==",
+                    "e1vEifLxXWkr8R9WqDMp9g=="
+                ],
+                "k": 76
+            }
+        },
+        "gfpoly_pow_03": {
+            "action": "gfpoly_pow",
+            "arguments": {
+                "A": [
+                    "Y7xhbm9TxqJjEfvxD8gObg==",
+                    "pQeo+weasxZcFb4D/EG8yg==",
+                    "wTc5GaDK4ydoC3nXqbuIAg==",
+                    "Bkc+5gZ5vKM54hgCfGnpEw==",
+                    "qF7NEp7ak087Jrqm/a018A==",
+                    "vzMsRzU9BJh+5bHJTG1FRA==",
+                    "7PJefnaJbXShiI9/C3eEOw==",
+                    "bWMZMmJ2o1kP84tEpVgZsA==",
+                    "CHpHIDPS3eRM1reXCXtbqA==",
+                    "LGQznh72ulNh6RPWWpJgtA==",
+                    "i3r+GiCsPnuNLVvs1AoY3g==",
+                    "4/vvYELgxifLO9rcIX4TCA==",
+                    "wcVhDHEtwmr0MCvN/teTFQ==",
+                    "G1KZOXPbOaX6+2afypauNw==",
+                    "1s7oJYsi4FSv6VQ6KKc13g==",
+                    "yhImOh2XC7dWKqVJ0MCRgg==",
+                    "DK6+nTMcG7/ZThcUSkGwFQ==",
+                    "31hJHbTn/wInBchrmHkeqA=="
+                ],
+                "k": 85
+            }
         }
     }
 }
