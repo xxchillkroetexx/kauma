@@ -111,21 +111,21 @@ def gfpoly_divmod(args: dict) -> dict:
 
 def gfpoly_powmod(args: dict) -> dict:
     A_b64 = args["A"]
-    B_b64 = args["B"]
+    M_b64 = args["M"]
     k = int(args["k"])
 
     # Convert base64 strings to byte arrays
     A_bytes = [base64_to_bytes(term) for term in A_b64]
-    B_bytes = [base64_to_bytes(term) for term in B_b64]
+    M_bytes = [base64_to_bytes(term) for term in M_b64]
     # Convert byte arrays to GALOIS_ELEMENT_128 objects
     A = [GALOIS_ELEMENT_128(value=reverse_bits_in_bytes(int.from_bytes(term, "little"))) for term in A_bytes]
-    B = [GALOIS_ELEMENT_128(value=reverse_bits_in_bytes(int.from_bytes(term, "little"))) for term in B_bytes]
+    M = [GALOIS_ELEMENT_128(value=reverse_bits_in_bytes(int.from_bytes(term, "little"))) for term in M_bytes]
     # Convert list of GALOIS_ELEMENT_128 objects to GALOIS_POLY_128 objects
     A = GALOIS_POLY_128(A)
-    B = GALOIS_POLY_128(B)
+    M = GALOIS_POLY_128(M)
 
     # * Polynomial exponentiation
-    Z: GALOIS_POLY_128 = A.powmod(exponent=k, modulus=B)
+    Z: GALOIS_POLY_128 = A.powmod(exponent=k, modulo=M)
 
     # Convert result back to bytes and then to base64 strings
     Z_bytes = [reverse_bits_in_bytes(term).to_bytes(16, "little") for term in Z.get_coefficients()]

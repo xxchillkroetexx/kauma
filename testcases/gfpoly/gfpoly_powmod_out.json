@@ -1,0 +1,24 @@
+{
+    "responses": {
+        "gfpoly_powmod_01": {
+            "Z": [
+                "oNXl5P8xq2WpUTP92u25zg=="
+            ]
+        },
+        "gfpoly_powmod_02": {
+            "Z": [
+                "AAAAAAAAAAAAAAAAAAAAAA=="
+            ]
+        },
+        "gfpoly_powmod_03": {
+            "Z": [
+                "gAAAAAAAAAAAAAAAAAAAAA=="
+            ]
+        },
+        "gfpoly_powmod_04": {
+            "Z": [
+                "gAAAAAAAAAAAAAAAAAAAAA=="
+            ]
+        }
+    }
+}
