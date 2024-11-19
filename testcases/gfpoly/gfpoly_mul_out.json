@@ -1,5 +1,10 @@
 {
     "responses": {
+        "gfpoly_mul_01": {
+            "P": [
+                "AAAAAAAAAAAAAAAAAAAAAA=="
+            ]
+        },
         "00d67689b47243adaa02372e87ac61f1": {
             "P": [
                 "1s9ERcQS3482iLdtcc2AGA==",

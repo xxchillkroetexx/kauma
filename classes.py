@@ -168,6 +168,11 @@ class GALOIS_POLY_128:
                 product[i + j] = product[i + j] + self_coeff * other_coeff
 
         return_product = GALOIS_POLY_128(coefficients=product)
+        if return_product._coefficients == [GALOIS_ELEMENT_128(0)]:
+            return_product = GALOIS_POLY_128(coefficients=[GALOIS_ELEMENT_128(0)])
+
+        return_product._clean_zeroes()
+
         return return_product
 
     def __add__(self, other: "GALOIS_POLY_128") -> "GALOIS_POLY_128":

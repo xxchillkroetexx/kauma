@@ -1,5 +1,19 @@
 {
     "testcases": {
+        "gfpoly_mul_01": {
+            "action": "gfpoly_mul",
+            "arguments": {
+                "A": [
+                    "NeverGonnaGiveYouUpAAA==",
+                    "NeverGonnaLetYouDownAA==",
+                    "NeverGonnaRunAroundAAA==",
+                    "AndDesertYouAAAAAAAAAA=="
+                ],
+                "B": [
+                    "AAAAAAAAAAAAAAAAAAAAAA=="
+                ]
+            }
+        },
         "00d67689b47243adaa02372e87ac61f1": {
             "action": "gfpoly_mul",
             "arguments": {
