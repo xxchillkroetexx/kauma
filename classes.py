@@ -197,9 +197,8 @@ class GALOIS_POLY_128:
 
         if len(return_sum) == 0:
             return GALOIS_POLY_128(coefficients=[GALOIS_ELEMENT_128(0)])
-        # print("pre_clean: ", return_sum)
+
         return_sum._clean_zeroes()
-        # print("post_clean: ", return_sum)
 
         return return_sum
 
@@ -248,25 +247,13 @@ class GALOIS_POLY_128:
         unten = other.get_coefficients_GF_ELEMENT()[::-1]
 
         for i in range(len(self) - len(other) + 1):
-            # print()
-            # print("remainder:", [str(coeff) for coeff in remainder])
-            # print("unten:    ", [str(coeff) for coeff in unten])
-            # print()
-            # print("i: ", i)
-            # print("remainder[i]:", remainder[i])
-            # print("unten[i]:    ", unten[0])
-
             obtained_term = remainder[0] // unten[0]
-            # print("obtained_term: ", obtained_term)
 
             quotient.append(obtained_term)
-            # print("quotient: ", [str(coeff) for coeff in quotient])
 
             temp = GALOIS_POLY_128(coefficients=[quotient[i]]) * GALOIS_POLY_128(coefficients=unten)
-            # print("temp:     ", temp)
 
             remainder = (GALOIS_POLY_128(coefficients=remainder) - temp).get_coefficients_GF_ELEMENT()
-            # print("remainder:", [str(coeff) for coeff in remainder])
 
         print()
         if len(quotient) == 0:
@@ -275,11 +262,29 @@ class GALOIS_POLY_128:
         quotient = GALOIS_POLY_128(coefficients=quotient[::-1])
         remainder = GALOIS_POLY_128(coefficients=remainder[::-1])
 
-        # return quotient, remainder
-        # print("quotient:  ", quotient)
-        # print("quotient_expected: ", 0x9C02008020080200802008020080200A.to_bytes(16, "little").hex())
-        # print("remainder: ", remainder)
         return quotient, remainder
+
+    def powmod(self, exponent: int, modulo: "GALOIS_POLY_128") -> "GALOIS_POLY_128":
+        """
+        Raise a polynomial to the power of another polynomial modulo a polynomial
+
+        exponent: the exponent
+        modulo: the modulo
+
+        returns: the result
+        """
+        result = GALOIS_POLY_128(coefficients=[GALOIS_ELEMENT_128(0x01)])
+
+        # square and multiply
+        while exponent:
+            if exponent & 1:
+                result *= self
+                result, _ = result // modulo
+            self *= self
+            self, _ = self // modulo
+            exponent >>= 1
+
+        return result
 
     def __str__(self) -> str:
         return f"{[str(coeff) for coeff in self._coefficients]}"
