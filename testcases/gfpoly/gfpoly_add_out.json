@@ -1,0 +1,36 @@
+{
+    "responses": {
+        "gfpoly_add_01": {
+            "S": [
+                "H1d3GuyA9/0OxeYouUpAAA==",
+                "OZuIncPAGEp4tYouDownAA==",
+                "NeverGonnaRunAroundAAA==",
+                "AndDesertYouAAAAAAAAAA=="
+            ]
+        },
+        "gfpoly_add_02": {
+            "S": [
+                "AAAAAAAAAAAAAAAAAAAAAA=="
+            ]
+        },
+        "gfpoly_add_03": {
+            "S": [
+                "NeverGonnaGiveYouUpAAA==",
+                "NeverGonnaLetYouDownAA==",
+                "NeverGonnaRunAroundAAA==",
+                "AndDesertYouAAAAAAAAAA=="
+            ]
+        },
+        "gfpoly_add_04": {
+            "S": [
+                "KryptoanalyseAAAAAAAAA==",
+                "DHBWMannheimAAAAAAAAAA=="
+            ]
+        },
+        "gfpoly_add_05": {
+            "S": [
+                "AAAAAAAAAAAAAAAAAAAAAA=="
+            ]
+        }
+    }
+}

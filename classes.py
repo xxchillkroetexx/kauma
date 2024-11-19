@@ -168,6 +168,11 @@ class GALOIS_POLY_128:
                 product[i + j] = product[i + j] + self_coeff * other_coeff
 
         return_product = GALOIS_POLY_128(coefficients=product)
+        if return_product._coefficients == [GALOIS_ELEMENT_128(0)]:
+            return_product = GALOIS_POLY_128(coefficients=[GALOIS_ELEMENT_128(0)])
+
+        return_product._clean_zeroes()
+
         return return_product
 
     def __add__(self, other: "GALOIS_POLY_128") -> "GALOIS_POLY_128":
@@ -189,6 +194,8 @@ class GALOIS_POLY_128:
         sum = [self_coeff + other_coeff for self_coeff, other_coeff in zip(self_coeff, other_coeff)]
         return_sum = GALOIS_POLY_128(coefficients=sum)
 
+        if len(return_sum) == 0:
+            return GALOIS_POLY_128(coefficients=[GALOIS_ELEMENT_128(0)])
         # print("pre_clean: ", return_sum)
         return_sum._clean_zeroes()
         # print("post_clean: ", return_sum)
