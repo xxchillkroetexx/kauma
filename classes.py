@@ -7,6 +7,7 @@ from helper import (
     split_blocks,
     xor_bytes,
 )
+from typing import Self
 
 
 class SEA128:
@@ -53,7 +54,7 @@ class GALOIS_ELEMENT_128:
         self._value = value
         self._minimal_polynomial = coefficients_to_min_polynom([128, 7, 2, 1, 0])
 
-    def __mul__(self, other: "GALOIS_ELEMENT_128") -> "GALOIS_ELEMENT_128":
+    def __mul__(self, other: Self) -> Self:
         """
         Multiply two elements in GF(2^128)
 
@@ -78,7 +79,7 @@ class GALOIS_ELEMENT_128:
 
         return GALOIS_ELEMENT_128(value=result)
 
-    def __add__(self, other: "GALOIS_ELEMENT_128") -> "GALOIS_ELEMENT_128":
+    def __add__(self, other: Self) -> Self:
         """
         Add two elements in GF(2^128)
 
@@ -89,7 +90,7 @@ class GALOIS_ELEMENT_128:
         sum = self._value ^ other._value
         return GALOIS_ELEMENT_128(value=sum)
 
-    def __sub__(self, other: "GALOIS_ELEMENT_128") -> "GALOIS_ELEMENT_128":
+    def __sub__(self, other: Self) -> Self:
         """
         Subtract two elements in GF(2^128)
 
@@ -99,7 +100,7 @@ class GALOIS_ELEMENT_128:
         """
         return self + other
 
-    def __pow__(self, exponent: int) -> "GALOIS_ELEMENT_128":
+    def __pow__(self, exponent: int) -> Self:
         """
         Raise an element to the power of another element
 
@@ -119,7 +120,7 @@ class GALOIS_ELEMENT_128:
     def __str__(self) -> str:
         return f"{hex(self._value)}"
 
-    def __floordiv__(self, other: "GALOIS_ELEMENT_128") -> "GALOIS_ELEMENT_128":
+    def __floordiv__(self, other: Self) -> Self:
         """
         Divide two elements in GF(2^128)
 
@@ -134,7 +135,7 @@ class GALOIS_ELEMENT_128:
         result = self * below
         return result
 
-    def inverse(self) -> "GALOIS_ELEMENT_128":
+    def inverse(self) -> Self:
         """
         Calculate the multiplicative inverse of an element in GF(2^128)
 
@@ -154,7 +155,7 @@ class GALOIS_POLY_128:
         self._coefficients = coefficients
         self._minimal_polynomial = coefficients_to_min_polynom([128, 7, 2, 1, 0])
 
-    def __mul__(self, other: "GALOIS_POLY_128") -> "GALOIS_POLY_128":
+    def __mul__(self, other: Self) -> Self:
         """
         Multiply two polynomials in GF(2^128)
 
@@ -176,7 +177,7 @@ class GALOIS_POLY_128:
 
         return return_product
 
-    def __add__(self, other: "GALOIS_POLY_128") -> "GALOIS_POLY_128":
+    def __add__(self, other: Self) -> Self:
         """
         Add two polynomials in GF(2^128)
 
@@ -202,7 +203,7 @@ class GALOIS_POLY_128:
 
         return return_sum
 
-    def __sub__(self, other: "GALOIS_POLY_128") -> "GALOIS_POLY_128":
+    def __sub__(self, other: Self) -> Self:
         """
         Subtract two polynomials in GF(2^128)
 
@@ -212,7 +213,7 @@ class GALOIS_POLY_128:
         """
         return self + other
 
-    def __pow__(self, exponent: int) -> "GALOIS_POLY_128":
+    def __pow__(self, exponent: int) -> Self:
         """
         Raise a polynomial to the power of another polynomial
 
@@ -230,7 +231,7 @@ class GALOIS_POLY_128:
             exponent >>= 1
         return result
 
-    def __floordiv__(self, other: "GALOIS_POLY_128") -> tuple["GALOIS_POLY_128", "GALOIS_POLY_128"]:
+    def __floordiv__(self, other: Self) -> tuple[Self, Self]:
         """
         Divide with remainder (DIVMOD) in GF(2^128)
 
@@ -267,7 +268,7 @@ class GALOIS_POLY_128:
 
         return quotient, remainder
 
-    def powmod(self, exponent: int, modulo: "GALOIS_POLY_128") -> "GALOIS_POLY_128":
+    def powmod(self, exponent: int, modulo: Self) -> Self:
         """
         Raise a polynomial to the power of another polynomial modulo a polynomial
 
