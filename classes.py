@@ -243,24 +243,27 @@ class GALOIS_POLY_128:
 
         # initialize the quotient and the remainder
         quotient = list()
-        remainder = self.get_coefficients_GF_ELEMENT()[::-1]
-        unten = other.get_coefficients_GF_ELEMENT()[::-1]
+        remainder = self.get_coefficients_GF_ELEMENT()[:]
+        unten = other.get_coefficients_GF_ELEMENT()[:]
 
-        for i in range(len(self) - len(other) + 1):
-            obtained_term = remainder[0] // unten[0]
+        for i in range(len(self) - len(other), -1, -1):
 
-            quotient.append(obtained_term)
+            obtained_term = remainder[-1] // unten[-1]
 
-            temp = GALOIS_POLY_128(coefficients=[quotient[i]]) * GALOIS_POLY_128(coefficients=unten)
+            quotient.insert(0, obtained_term)
+
+            temp = GALOIS_POLY_128(coefficients=[obtained_term]) * GALOIS_POLY_128(coefficients=unten)
+
+            # insert i * GF_ELEMENT_128(0) to the front of the temp coefficients
+            temp = GALOIS_POLY_128(coefficients=[GALOIS_ELEMENT_128(0)] * i + temp.get_coefficients_GF_ELEMENT())
 
             remainder = (GALOIS_POLY_128(coefficients=remainder) - temp).get_coefficients_GF_ELEMENT()
 
-        print()
         if len(quotient) == 0:
             quotient = [GALOIS_ELEMENT_128(0)]
-        # arrange the coefficients in ascending order of powers
-        quotient = GALOIS_POLY_128(coefficients=quotient[::-1])
-        remainder = GALOIS_POLY_128(coefficients=remainder[::-1])
+
+        quotient = GALOIS_POLY_128(coefficients=quotient)
+        remainder = GALOIS_POLY_128(coefficients=remainder)
 
         return quotient, remainder
 
