@@ -109,7 +109,7 @@ def evaluate_testcase(testcase: dict) -> dict:
                 raise ValueError(f"Error in gfpoly_divmod: {e}")
         case "gfpoly_powmod":
             try:
-                return gfpoly_powmod(testcase["arguments"])
+                return {"Z": gfpoly_powmod(testcase["arguments"])}
             except ValueError as e:
                 raise ValueError(f"Error in gfpoly_powmod: {e}")
 

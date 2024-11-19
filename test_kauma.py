@@ -114,5 +114,14 @@ def test_gfpoly_divmod():
     assert evaluate_testcases(testcase_json=testcases_json) == output_json
 
 
+def test_gfpoly_powmod():
+    with open("testcases/gfpoly/gfpoly_powmod_in.json", "r") as file:
+        testcases_json = json.load(file)
+    with open("testcases/gfpoly/gfpoly_powmod_out.json", "r") as file:
+        output_json = json.load(file)
+
+    assert evaluate_testcases(testcase_json=testcases_json) == output_json
+
+
 if __name__ == "__main__":
     pytest.main()

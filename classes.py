@@ -283,9 +283,9 @@ class GALOIS_POLY_128:
         while exponent:
             if exponent & 1:
                 result *= self
-                result, _ = result // modulo
+                _, result = result // modulo
             self *= self
-            self, _ = self // modulo
+            _, self = self // modulo
             exponent >>= 1
 
         return result
