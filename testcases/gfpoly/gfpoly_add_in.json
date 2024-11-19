@@ -1,0 +1,59 @@
+{
+    "testcases": {
+        "gfpoly_add_01": {
+            "action": "gfpoly_add",
+            "arguments": {
+                "A": [
+                    "NeverGonnaGiveYouUpAAA==",
+                    "NeverGonnaLetYouDownAA==",
+                    "NeverGonnaRunAroundAAA==",
+                    "AndDesertYouAAAAAAAAAA=="
+                ],
+                "B": [
+                    "KryptoanalyseAAAAAAAAA==",
+                    "DHBWMannheimAAAAAAAAAA=="
+                ]
+            }
+        },
+        "gfpoly_add_02": {
+            "action": "gfpoly_add",
+            "arguments": {
+                "A": [],
+                "B": []
+            }
+        },
+        "gfpoly_add_03": {
+            "action": "gfpoly_add",
+            "arguments": {
+                "A": [
+                    "NeverGonnaGiveYouUpAAA==",
+                    "NeverGonnaLetYouDownAA==",
+                    "NeverGonnaRunAroundAAA==",
+                    "AndDesertYouAAAAAAAAAA=="
+                ],
+                "B": []
+            }
+        },
+        "gfpoly_add_04": {
+            "action": "gfpoly_add",
+            "arguments": {
+                "A": [],
+                "B": [
+                    "KryptoanalyseAAAAAAAAA==",
+                    "DHBWMannheimAAAAAAAAAA=="
+                ]
+            }
+        },
+        "gfpoly_add_05": {
+            "action": "gfpoly_add",
+            "arguments": {
+                "A": [
+                    "QAAAAAAAAAAAAAAAAAAAAA=="
+                ],
+                "B": [
+                    "QAAAAAAAAAAAAAAAAAAAAA=="
+                ]
+            }
+        }
+    }
+}
