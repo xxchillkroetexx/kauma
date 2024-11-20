@@ -1,0 +1,31 @@
+{
+    "responses": {
+        "gfpoly_powmod_01": {
+            "sorted_polys": [
+                [
+                    "WereNoStrangersToLoveA==",
+                    "YouKnowTheRulesAAAAAAA==",
+                    "AndSoDoIAAAAAAAAAAAAAA=="
+                ],
+                [
+                    "NeverGonnaMakeYouCryAA==",
+                    "NeverGonnaSayGoodbyeAA==",
+                    "NeverGonnaTellALieAAAA==",
+                    "AndHurtYouAAAAAAAAAAAA=="
+                ],
+                [
+                    "AAAAAAAAAAAAAAAAAAAAAA==",
+                    "NeverGonnaSayGoodbyeAA==",
+                    "NeverGonnaTellALieAAAA==",
+                    "AndHurtYouAAAAAAAAAAAA=="
+                ],
+                [
+                    "NeverGonnaGiveYouUpAAA==",
+                    "NeverGonnaLetYouDownAA==",
+                    "NeverGonnaRunAroundAAA==",
+                    "AndDesertYouAAAAAAAAAA=="
+                ]
+            ]
+        }
+    }
+}

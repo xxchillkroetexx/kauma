@@ -222,3 +222,45 @@ def reverse_bits_in_bytes(n):
         # Shift n to the right by 8 bits
         n >>= 8
     return result
+
+
+def mergesort(polys: list) -> list:
+    """
+    Sort the polynomials using mergesort
+    """
+    if len(polys) <= 1:
+        return polys
+    if len(polys) == 2:
+        if polys[0] > polys[1]:
+            return [polys[1], polys[0]]
+        return polys
+
+    mid = len(polys) // 2
+    left = polys[:mid]
+    right = polys[mid:]
+
+    left = mergesort(left)
+    right = mergesort(right)
+
+    return merge(left, right)
+
+
+def merge(left, right):
+    """
+    Merge the two sorted lists
+    """
+    result = []
+    i = j = 0
+
+    while i < len(left) and j < len(right):
+        if left[i] < right[j]:
+            result.append(left[i])
+            i += 1
+        else:
+            result.append(right[j])
+            j += 1
+
+    result += left[i:]
+    result += right[j:]
+
+    return result
