@@ -137,7 +137,7 @@ def main():
     with open(args.json_file, "r") as f:
         testcase_json = json.load(f)
 
-    print(json.dumps(evaluate_testcases(testcase_json)))
+    print(json.dumps(evaluate_testcases(testcase_json), indent=4))
 
 
 if __name__ == "__main__":

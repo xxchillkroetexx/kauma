@@ -7,8 +7,9 @@ def gfpoly_sort(polys: dict[list[list]]) -> list[list[str]]:
     Sort the polynomials in ascending order
     """
     polys = polys["polys"]
-
-    polys = [[base64_to_bytes(coeff) for coeff in poly] for poly in polys]
+    for i in range(len(polys)):
+        for j in range(len(polys[i])):
+            polys[i][j] = base64_to_bytes(polys[i][j])
 
     for i in range(len(polys)):
 
