@@ -11,6 +11,11 @@ def gfpoly_sort(polys: dict[list[list]]) -> list[list[str]]:
     polys = [[base64_to_bytes(coeff) for coeff in poly] for poly in polys]
 
     for i in range(len(polys)):
+
+        if len(polys[i]) == 0:
+            polys[i] = GALOIS_POLY_128(coefficients=[GALOIS_ELEMENT_128(0)])
+            continue
+
         for j in range(len(polys[i])):
             polys[i][j] = GALOIS_ELEMENT_128(value=reverse_bits_in_bytes(int.from_bytes(polys[i][j], "little")))
         polys[i] = GALOIS_POLY_128(polys[i])
