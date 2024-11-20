@@ -143,6 +143,24 @@ class GALOIS_ELEMENT_128:
         """
         return self ** (2**128 - 2)
 
+    def __eq__(self, other: Self) -> bool:
+        return self._value == other._value
+
+    def __ne__(self, other: Self) -> bool:
+        return not self == other
+
+    def __lt__(self, other: Self) -> bool:
+        return self._value < other._value
+
+    def __le__(self, other: Self) -> bool:
+        return self._value <= other._value
+
+    def __gt__(self, other: Self) -> bool:
+        return self._value > other._value
+
+    def __ge__(self, other: Self) -> bool:
+        return self._value >= other._value
+
     def to_bytes(self, byteorder: str = "little") -> bytes:
         return self._value.to_bytes(16, byteorder)
 
@@ -293,7 +311,28 @@ class GALOIS_POLY_128:
     def __str__(self) -> str:
         return f"{[str(coeff) for coeff in self._coefficients]}"
 
-    def to_bytes(self, byteorder: str = "little") -> bytes:
+    def get_degree(self):
+        return len(self._coefficients)
+
+    def __lt__(self, other: Self) -> bool:
+        return len(self) < len(other)
+
+    def __le__(self, other: Self) -> bool:
+        return len(self) <= len(other)
+
+    def __gt__(self, other: Self) -> bool:
+        return len(self) > len(other)
+
+    def __ge__(self, other: Self) -> bool:
+        return len(self) >= len(other)
+
+    def __eq__(self, other: Self) -> bool:
+        return self._coefficients == other._coefficients
+
+    def __ne__(self, other: Self) -> bool:
+        return not self == other
+
+    def to_bytes(self, byteorder: str = "little") -> list[bytes]:
         return [coeff.to_bytes(byteorder) for coeff in self._coefficients]
 
     def to_hex(self, byteorder: str = "little") -> str:

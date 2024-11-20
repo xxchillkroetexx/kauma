@@ -13,6 +13,7 @@ from task01 import (
 )
 from task02 import gcm_encrypt, gcm_decrypt, padding_oracle
 from task03 import gfdiv, gfpoly_add, gfpoly_divmod, gfpoly_mul, gfpoly_pow, gfpoly_powmod
+from task04 import gfpoly_sort
 
 
 def evaluate_testcases(testcase_json: dict) -> dict:
@@ -112,6 +113,11 @@ def evaluate_testcase(testcase: dict) -> dict:
                 return {"Z": gfpoly_powmod(testcase["arguments"])}
             except ValueError as e:
                 raise ValueError(f"Error in gfpoly_powmod: {e}")
+        case "gfpoly_sort":
+            try:
+                return {"sorted_polys": gfpoly_sort(testcase["arguments"])}
+            except ValueError as e:
+                raise ValueError(f"Error in gfpoly_sort: {e}")
 
         case _:
             raise ValueError("Invalid action")

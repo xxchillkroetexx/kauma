@@ -33,6 +33,16 @@ def test_03_evaluate_testcases():
     assert evaluate_testcases(testcase_json=testcases_json) == output_json
 
 
+def test_04_evaluate_testcases():
+
+    with open("testcases/task04.json", "r") as file:
+        testcases_json = json.load(file)
+    with open("testcases/task04_output.json", "r") as file:
+        output_json = json.load(file)
+
+    assert evaluate_testcases(testcase_json=testcases_json) == output_json
+
+
 def test_gfmul():
     with open("testcases/gfmul_args.json", "r") as file:
         testcases_json = json.load(file)
