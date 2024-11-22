@@ -30,6 +30,34 @@
                     []
                 ]
             }
+        },
+        "gfpoly_powmod_02": {
+            "action": "gfpoly_sort",
+            "arguments": {
+                "polys": []
+            }
+        },
+        "gfpoly_powmod_03": {
+            "action": "gfpoly_sort",
+            "arguments": {
+                "polys": [
+                    [
+                        "QAAAAAAAAAAAAAAAAAAAAQ=="
+                    ],
+                    [
+                        "QQAAAAAAAAAAAAAAAAAAAQ=="
+                    ],
+                    [
+                        "QQAAAAAAAAAAAAAAAAAAAA=="
+                    ],
+                    [
+                        "AAAAAAAAAAAAAAAAAAAAAA=="
+                    ],
+                    [
+                        "QAAAAAAAAAAAAAAAAAAAQQ=="
+                    ]
+                ]
+            }
         }
     }
 }
