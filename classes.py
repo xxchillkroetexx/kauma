@@ -138,10 +138,27 @@ class GALOIS_ELEMENT_128:
     def inverse(self) -> Self:
         """
         Calculate the multiplicative inverse of an element in GF(2^128)
+        using an adapted version of the extended Euclidean algorithm
 
         returns: the multiplicative inverse
         """
-        return self ** (2**128 - 2)
+        a = self._value
+        m = self._minimal_polynomial
+        u, v = 1, 0
+        g, x = a, m
+
+        while g != 1:
+            j = g.bit_length() - x.bit_length()
+
+            if j < 0:
+                g, x = x, g
+                u, v = v, u
+                j = -j
+
+            g ^= x << j
+            u ^= v << j
+
+        return GALOIS_ELEMENT_128(value=u)
 
     def __eq__(self, other: Self) -> bool:
         return self._value == other._value
