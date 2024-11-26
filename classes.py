@@ -158,6 +158,8 @@ class GALOIS_ELEMENT_128:
             g ^= x << j
             u ^= v << j
 
+        return GALOIS_ELEMENT_128(u)
+
     def squareroot(self) -> Self:
         """
         Calculate the square root of an element in GF(2^128)
