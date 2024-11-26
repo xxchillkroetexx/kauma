@@ -1,0 +1,68 @@
+{
+    "responses": {
+        "gfpoly_sort_01": {
+            "sorted_polys": [
+                [
+                    "AAAAAAAAAAAAAAAAAAAAAA=="
+                ],
+                [
+                    "WereNoStrangersToLoveA==",
+                    "YouKnowTheRulesAAAAAAA==",
+                    "AndSoDoIAAAAAAAAAAAAAA=="
+                ],
+                [
+                    "AAAAAAAAAAAAAAAAAAAAAA==",
+                    "NeverGonnaSayGoodbyeAA==",
+                    "NeverGonnaTellALieAAAA==",
+                    "AndHurtYouAAAAAAAAAAAA=="
+                ],
+                [
+                    "NeverGonnaGiveYouUpAAA==",
+                    "NeverGonnaLetYouDownAA==",
+                    "NeverGonnaRunAroundAAA==",
+                    "AndDesertYouAAAAAAAAAA=="
+                ],
+                [
+                    "NeverGonnaMakeYouCryAA==",
+                    "NeverGonnaSayGoodbyeAA==",
+                    "NeverGonnaTellALieAAAA==",
+                    "AndHurtYouAAAAAAAAAAAA=="
+                ]
+            ]
+        },
+        "gfpoly_powmod_02": {
+            "sorted_polys": []
+        },
+        "gfpoly_powmod_03": {
+            "sorted_polys": [
+                [
+                    "AAAAAAAAAAAAAAAAAAAAAA=="
+                ],
+                [
+                    "QQAAAAAAAAAAAAAAAAAAAA=="
+                ],
+                [
+                    "QAAAAAAAAAAAAAAAAAAAAQ=="
+                ],
+                [
+                    "QQAAAAAAAAAAAAAAAAAAAQ=="
+                ],
+                [
+                    "QAAAAAAAAAAAAAAAAAAAQQ=="
+                ]
+            ]
+        },
+        "gfpoly_powmod_04": {
+            "sorted_polys": [
+                [
+                    "gAAAAAAAAAAAAAAAAAAAAA==",
+                    "gAAAAAAAAAAAAAAAAAAAAA=="
+                ],
+                [
+                    "AAAAAAAAAAAAAAAAAAAAAA==",
+                    "NeverGonnaGiveYouUpAAA=="
+                ]
+            ]
+        }
+    }
+}

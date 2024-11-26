@@ -329,25 +329,37 @@ class GALOIS_POLY_128:
         return f"{[str(coeff) for coeff in self._coefficients]}"
 
     def get_degree(self):
-        return len(self._coefficients)
+        return len(self._coefficients) - 1
 
     def __lt__(self, other: Self) -> bool:
-        return len(self) < len(other)
+        if self.get_degree() == other.get_degree():
+            return self._coefficients[-1] < other._coefficients[-1]
+        else:
+            return self.get_degree() < other.get_degree()
 
     def __le__(self, other: Self) -> bool:
-        return len(self) <= len(other)
+        if self.get_degree() == other.get_degree():
+            return self._coefficients[-1] <= other._coefficients[-1]
+        else:
+            return self.get_degree() <= other.get_degree()
 
     def __gt__(self, other: Self) -> bool:
-        return len(self) > len(other)
+        if self.get_degree() == other.get_degree():
+            return self._coefficients[-1] > other._coefficients[-1]
+        else:
+            return self.get_degree() > other.get_degree()
 
     def __ge__(self, other: Self) -> bool:
-        return len(self) >= len(other)
+        if self.get_degree() == other.get_degree():
+            return self._coefficients[-1] >= other._coefficients[-1]
+        else:
+            return self.get_degree() >= other.get_degree()
 
     def __eq__(self, other: Self) -> bool:
         return self._coefficients == other._coefficients
 
     def __ne__(self, other: Self) -> bool:
-        return not self == other
+        return not self._coefficients == other._coefficients
 
     def to_bytes(self, byteorder: str = "little") -> list[bytes]:
         return [coeff.to_bytes(byteorder) for coeff in self._coefficients]
