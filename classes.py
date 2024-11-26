@@ -158,7 +158,15 @@ class GALOIS_ELEMENT_128:
             g ^= x << j
             u ^= v << j
 
-        return GALOIS_ELEMENT_128(value=u)
+    def squareroot(self) -> Self:
+        """
+        Calculate the square root of an element in GF(2^128)
+        with calculation of d^(2^(128-1))
+
+        returns: the square root
+        """
+        d = self
+        return d ** pow(2, 128 - 1)
 
     def __eq__(self, other: Self) -> bool:
         return self._value == other._value
@@ -303,6 +311,17 @@ class GALOIS_POLY_128:
 
         return quotient, remainder
 
+    def __mod__(self, other: Self) -> Self:
+        """
+        Modulo operation in GF(2^128)
+
+        other: the other polynomial
+
+        returns: the remainder
+        """
+        _, remainder = self // other
+        return remainder
+
     def powmod(self, exponent: int, modulo: Self) -> Self:
         """
         Raise a polynomial to the power of another polynomial modulo a polynomial
@@ -331,6 +350,14 @@ class GALOIS_POLY_128:
             lead_term = self._coefficients[-1]
             if lead_term._value != 1:
                 self._coefficients = [coeff // lead_term for coeff in self._coefficients]
+
+    def sqrt(self):
+        # Calculate the square root of the polynomial
+        # with calculation of d^(2^(128-1))
+        roots = list()
+        for i in range(0, self.get_degree() + 1, 2):
+            roots.append(self._coefficients[i].squareroot())
+        return GALOIS_POLY_128(coefficients=roots)
 
     def __str__(self) -> str:
         return f"{[str(coeff) for coeff in self._coefficients]}"

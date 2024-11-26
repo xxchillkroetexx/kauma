@@ -36,15 +36,31 @@ def gfpoly_sort(polys: dict[list[list]]) -> list[list[str]]:
     return return_list
 
 
-def gfpoly_make_monic(poly: dict[list[str]]) -> list[str]:
+def gfpoly_make_monic(poly: dict[list[str]]) -> list[str]:  # TODO
     """
     Make the polynomial monic
     """
-    poly = [base64_to_bytes(coeff) for coeff in poly["A"]]
+    poly = poly["A"]
+    poly = [base64_to_bytes(coeff) for coeff in poly]
     coefficients = [GALOIS_ELEMENT_128(reverse_bits_in_bytes(int.from_bytes(coeff, "little"))) for coeff in poly]
-    poly = GALOIS_POLY_128(coefficients=coefficients)
+    poly: GALOIS_POLY_128 = GALOIS_POLY_128(coefficients=coefficients)
 
     poly.make_monic()
     poly = poly.get_coefficients()
     poly = [reverse_bits_in_bytes(term).to_bytes(16, "little") for term in poly]
     return [bytes_to_base64(coeff) for coeff in poly]
+
+
+def gfpoly_sqrt(poly: dict[list[str]]) -> list[str]:
+    """
+    Calculate the square root of the polynomial
+    """
+    poly = poly["Q"]
+    poly = [base64_to_bytes(coeff) for coeff in poly]
+    coefficients = [GALOIS_ELEMENT_128(reverse_bits_in_bytes(int.from_bytes(coeff, "little"))) for coeff in poly]
+    poly: GALOIS_POLY_128 = GALOIS_POLY_128(coefficients=coefficients)
+
+    sqrt_poly = poly.sqrt()
+    sqrt_poly = sqrt_poly.get_coefficients()
+    sqrt_poly = [reverse_bits_in_bytes(term).to_bytes(16, "little") for term in sqrt_poly]
+    return [bytes_to_base64(coeff) for coeff in sqrt_poly]

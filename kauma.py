@@ -1,5 +1,6 @@
 import json
 import argparse
+import sys
 
 from helper import bytes_to_base64
 from task01 import (
@@ -13,7 +14,7 @@ from task01 import (
 )
 from task02 import gcm_encrypt, gcm_decrypt, padding_oracle
 from task03 import gfdiv, gfpoly_add, gfpoly_divmod, gfpoly_mul, gfpoly_pow, gfpoly_powmod
-from task04 import gfpoly_make_monic, gfpoly_sort
+from task04 import gfpoly_make_monic, gfpoly_sort, gfpoly_sqrt
 
 
 def evaluate_testcases(testcase_json: dict) -> dict:
@@ -122,8 +123,12 @@ def evaluate_testcase(testcase: dict) -> dict:
             try:
                 return {"A*": gfpoly_make_monic(testcase["arguments"])}
             except Exception as e:
-                raise ValueError(f"Error in testcase {testcase}: {e}")
-                return {"error": "gfpoly_make_monic"}
+                return sys.stderr.write(f"Error: {e}")
+        case "gfpoly_sqrt":
+            try:
+                return {"S": gfpoly_sqrt(testcase["arguments"])}
+            except Exception as e:
+                return {"error": e}
 
         case _:
             return {"error": "not implemented"}
