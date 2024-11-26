@@ -1,6 +1,6 @@
 {
     "testcases": {
-        "gfpoly_powmod_01": {
+        "gfpoly_sort_01": {
             "action": "gfpoly_sort",
             "arguments": {
                 "polys": [
@@ -17,12 +17,6 @@
                     ],
                     [
                         "NeverGonnaMakeYouCryAA==",
-                        "NeverGonnaSayGoodbyeAA==",
-                        "NeverGonnaTellALieAAAA==",
-                        "AndHurtYouAAAAAAAAAAAA=="
-                    ],
-                    [
-                        "AAAAAAAAAAAAAAAAAAAAAA==",
                         "NeverGonnaSayGoodbyeAA==",
                         "NeverGonnaTellALieAAAA==",
                         "AndHurtYouAAAAAAAAAAAA=="

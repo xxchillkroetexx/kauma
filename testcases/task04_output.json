@@ -1,6 +1,6 @@
 {
     "responses": {
-        "gfpoly_powmod_01": {
+        "gfpoly_sort_01": {
             "sorted_polys": [
                 [
                     "WereNoStrangersToLoveA==",
@@ -9,12 +9,6 @@
                 ],
                 [
                     "NeverGonnaMakeYouCryAA==",
-                    "NeverGonnaSayGoodbyeAA==",
-                    "NeverGonnaTellALieAAAA==",
-                    "AndHurtYouAAAAAAAAAAAA=="
-                ],
-                [
-                    "AAAAAAAAAAAAAAAAAAAAAA==",
                     "NeverGonnaSayGoodbyeAA==",
                     "NeverGonnaTellALieAAAA==",
                     "AndHurtYouAAAAAAAAAAAA=="

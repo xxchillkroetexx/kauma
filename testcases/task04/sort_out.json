@@ -3,15 +3,12 @@
         "gfpoly_sort_01": {
             "sorted_polys": [
                 [
-                    "AAAAAAAAAAAAAAAAAAAAAA=="
-                ],
-                [
                     "WereNoStrangersToLoveA==",
                     "YouKnowTheRulesAAAAAAA==",
                     "AndSoDoIAAAAAAAAAAAAAA=="
                 ],
                 [
-                    "AAAAAAAAAAAAAAAAAAAAAA==",
+                    "NeverGonnaMakeYouCryAA==",
                     "NeverGonnaSayGoodbyeAA==",
                     "NeverGonnaTellALieAAAA==",
                     "AndHurtYouAAAAAAAAAAAA=="
@@ -21,19 +18,13 @@
                     "NeverGonnaLetYouDownAA==",
                     "NeverGonnaRunAroundAAA==",
                     "AndDesertYouAAAAAAAAAA=="
-                ],
-                [
-                    "NeverGonnaMakeYouCryAA==",
-                    "NeverGonnaSayGoodbyeAA==",
-                    "NeverGonnaTellALieAAAA==",
-                    "AndHurtYouAAAAAAAAAAAA=="
                 ]
             ]
         },
-        "gfpoly_powmod_02": {
+        "gfpoly_sort_02": {
             "sorted_polys": []
         },
-        "gfpoly_powmod_03": {
+        "gfpoly_sort_03": {
             "sorted_polys": [
                 [
                     "AAAAAAAAAAAAAAAAAAAAAA=="
@@ -52,7 +43,7 @@
                 ]
             ]
         },
-        "gfpoly_powmod_04": {
+        "gfpoly_sort_04": {
             "sorted_polys": [
                 [
                     "gAAAAAAAAAAAAAAAAAAAAA==",
@@ -61,6 +52,21 @@
                 [
                     "AAAAAAAAAAAAAAAAAAAAAA==",
                     "NeverGonnaGiveYouUpAAA=="
+                ]
+            ]
+        },
+        "gfpoly_sort_05": {
+            "sorted_polys": [
+                [
+                    "NeverGonnaGiveYouUpAAA=="
+                ],
+                [
+                    "gAAAAAAAAAAAAAAAAAAAAA==",
+                    "gAAAAAAAAAAAAAAAAAAAAA=="
+                ],
+                [
+                    "AAAAAAAAAAAAAAAAAAAAAA==",
+                    "NeverGonnaLetYouDownAA=="
                 ]
             ]
         }
