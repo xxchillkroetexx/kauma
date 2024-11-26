@@ -20,14 +20,7 @@
                         "NeverGonnaSayGoodbyeAA==",
                         "NeverGonnaTellALieAAAA==",
                         "AndHurtYouAAAAAAAAAAAA=="
-                    ],
-                    [
-                        "AAAAAAAAAAAAAAAAAAAAAA==",
-                        "NeverGonnaSayGoodbyeAA==",
-                        "NeverGonnaTellALieAAAA==",
-                        "AndHurtYouAAAAAAAAAAAA=="
-                    ],
-                    []
+                    ]
                 ]
             }
         },
@@ -70,6 +63,24 @@
                     [
                         "gAAAAAAAAAAAAAAAAAAAAA==",
                         "gAAAAAAAAAAAAAAAAAAAAA=="
+                    ]
+                ]
+            }
+        },
+        "gfpoly_sort_05": {
+            "action": "gfpoly_sort",
+            "arguments": {
+                "polys": [
+                    [
+                        "NeverGonnaGiveYouUpAAA=="
+                    ],
+                    [
+                        "gAAAAAAAAAAAAAAAAAAAAA==",
+                        "gAAAAAAAAAAAAAAAAAAAAA=="
+                    ],
+                    [
+                        "AAAAAAAAAAAAAAAAAAAAAA==",
+                        "NeverGonnaLetYouDownAA=="
                     ]
                 ]
             }

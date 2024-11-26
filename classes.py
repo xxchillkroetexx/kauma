@@ -164,7 +164,7 @@ class GALOIS_ELEMENT_128:
         return self._value == other._value
 
     def __ne__(self, other: Self) -> bool:
-        return not self == other
+        return self._value != other._value
 
     def __lt__(self, other: Self) -> bool:
         return self._value < other._value
@@ -332,34 +332,29 @@ class GALOIS_POLY_128:
         return len(self._coefficients) - 1
 
     def __lt__(self, other: Self) -> bool:
-        if self.get_degree() == other.get_degree():
-            return self._coefficients[-1] < other._coefficients[-1]
-        else:
+        # Check if one polynomial is less than another
+        if self.get_degree() != other.get_degree():
             return self.get_degree() < other.get_degree()
+        # Compare coefficients from highest to lowest
+        for a, b in zip(self._coefficients, other._coefficients):
+            if a != b:
+                return a < b
+        return False
 
     def __le__(self, other: Self) -> bool:
-        if self.get_degree() == other.get_degree():
-            return self._coefficients[-1] <= other._coefficients[-1]
-        else:
-            return self.get_degree() <= other.get_degree()
+        return self < other or self == other
 
     def __gt__(self, other: Self) -> bool:
-        if self.get_degree() == other.get_degree():
-            return self._coefficients[-1] > other._coefficients[-1]
-        else:
-            return self.get_degree() > other.get_degree()
+        return not self <= other
 
     def __ge__(self, other: Self) -> bool:
-        if self.get_degree() == other.get_degree():
-            return self._coefficients[-1] >= other._coefficients[-1]
-        else:
-            return self.get_degree() >= other.get_degree()
+        return not self < other
 
     def __eq__(self, other: Self) -> bool:
         return self._coefficients == other._coefficients
 
     def __ne__(self, other: Self) -> bool:
-        return not self._coefficients == other._coefficients
+        return not self == other
 
     def to_bytes(self, byteorder: str = "little") -> list[bytes]:
         return [coeff.to_bytes(byteorder) for coeff in self._coefficients]
