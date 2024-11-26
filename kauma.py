@@ -13,7 +13,7 @@ from task01 import (
 )
 from task02 import gcm_encrypt, gcm_decrypt, padding_oracle
 from task03 import gfdiv, gfpoly_add, gfpoly_divmod, gfpoly_mul, gfpoly_pow, gfpoly_powmod
-from task04 import gfpoly_sort
+from task04 import gfpoly_make_monic, gfpoly_sort
 
 
 def evaluate_testcases(testcase_json: dict) -> dict:
@@ -46,81 +46,87 @@ def evaluate_testcase(testcase: dict) -> dict:
         case "poly2block":
             try:
                 return {"block": bytes_to_base64(poly2block(testcase["arguments"]))}
-            except ValueError as e:
-                raise ValueError(f"Error in poly2block: {e}")
+            except:
+                return {"error": "poly2block"}
         case "block2poly":
             try:
                 return {"coefficients": block2poly(testcase["arguments"])}
-            except ValueError as e:
-                raise ValueError(f"Error in block2poly: {e}")
+            except:
+                return {"error": "block2poly"}
         case "gfmul":
             try:
                 return {"product": bytes_to_base64(gfmul(testcase["arguments"]))}
-            except ValueError as e:
-                raise ValueError(f"Error in gfmul: {e}")
+            except:
+                return {"error": "gfmul"}
         case "sea128":
             try:
                 return {"output": bytes_to_base64(sea128(testcase["arguments"]))}
-            except ValueError as e:
-                raise ValueError(f"Error in sea128: {e}")
+            except:
+                return {"error": "sea128"}
         case "xex":
             try:
                 return {"output": bytes_to_base64(full_disc_encryption(testcase["arguments"]))}
-            except ValueError as e:
-                raise ValueError(f"Error in block2poly: {e}")
+            except:
+                return {"error": "xex"}
         case "padding_oracle":
             try:
                 return {"plaintext": bytes_to_base64(padding_oracle(testcase["arguments"]))}
-            except ValueError as e:
-                raise ValueError(f"Error in padding_oracle: {e}")
+            except:
+                return {"error": "padding_oracle"}
         case "gcm_encrypt":
             try:
                 return gcm_encrypt(testcase["arguments"])
-            except ValueError as e:
-                raise ValueError(f"Error in gcm_encrypt: {e}")
+            except:
+                return {"error": "gcm_encrypt"}
         case "gcm_decrypt":
             try:
                 return gcm_decrypt(testcase["arguments"])
-            except ValueError as e:
-                raise ValueError(f"Error in gcm_encrypt: {e}")
+            except:
+                return {"error": "gcm_decrypt"}
         case "gfpoly_add":
             try:
                 return {"S": gfpoly_add(testcase["arguments"])}
-            except ValueError as e:
-                raise ValueError(f"Error in gfpoly_add: {e}")
+            except:
+                return {"error": "gfpoly_add"}
         case "gfpoly_mul":
             try:
                 return {"P": gfpoly_mul(testcase["arguments"])}
-            except ValueError as e:
-                raise ValueError(f"Error in gfpoly_mul: {e}")
+            except:
+                return {"error": "gfpoly_mul"}
         case "gfpoly_pow":
             try:
                 return {"Z": gfpoly_pow(testcase["arguments"])}
-            except ValueError as e:
-                raise ValueError(f"Error in gfpoly_pow: {e}")
+            except:
+                return {"error": "gfpoly_pow"}
         case "gfdiv":
             try:
                 return {"q": bytes_to_base64(gfdiv(testcase["arguments"]))}
-            except ValueError as e:
-                raise ValueError(f"Error in gfdiv: {e}")
+            except:
+                return {"error": "gfdiv"}
         case "gfpoly_divmod":
             try:
                 return gfpoly_divmod(testcase["arguments"])
-            except ValueError as e:
-                raise ValueError(f"Error in gfpoly_divmod: {e}")
+            except:
+                return {"error": "gfpoly_divmod"}
         case "gfpoly_powmod":
             try:
                 return {"Z": gfpoly_powmod(testcase["arguments"])}
-            except ValueError as e:
-                raise ValueError(f"Error in gfpoly_powmod: {e}")
+            except:
+                return {"error": "gfpoly_powmod"}
         case "gfpoly_sort":
             try:
                 return {"sorted_polys": gfpoly_sort(testcase["arguments"])}
-            except ValueError as e:
-                raise ValueError(f"Error in gfpoly_sort: {e}")
+            except:
+                return {"error": "gfpoly_sort"}
+        case "gfpoly_make_monic":
+            try:
+                return {"A*": gfpoly_make_monic(testcase["arguments"])}
+            except Exception as e:
+                raise ValueError(f"Error in testcase {testcase}: {e}")
+                return {"error": "gfpoly_make_monic"}
 
         case _:
-            raise ValueError("Invalid action")
+            return {"error": "not implemented"}
     pass
 
 
