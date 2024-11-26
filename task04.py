@@ -1,5 +1,5 @@
 from classes import GALOIS_ELEMENT_128, GALOIS_POLY_128
-from helper import base64_to_bytes, reverse_bits_in_bytes, bytes_to_base64
+from helper import base64_to_bytes, mergesort, reverse_bits_in_bytes, bytes_to_base64
 
 
 def gfpoly_sort(polys: dict[list[list]]) -> list[list[str]]:
@@ -36,45 +36,15 @@ def gfpoly_sort(polys: dict[list[list]]) -> list[list[str]]:
     return return_list
 
 
-def mergesort(list: list) -> list:
-    length = len(list)
-    if length <= 1:
-        return list
-    mid = length // 2
-    left = list[:mid]
-    right = list[mid:]
-    left = mergesort(left)
-    right = mergesort(right)
-    return merge(left, right)
+def gfpoly_make_monic(poly: dict[list[str]]) -> list[str]:
+    """
+    Make the polynomial monic
+    """
+    poly = [base64_to_bytes(coeff) for coeff in poly["A"]]
+    coefficients = [GALOIS_ELEMENT_128(reverse_bits_in_bytes(int.from_bytes(coeff, "little"))) for coeff in poly]
+    poly = GALOIS_POLY_128(coefficients=coefficients)
 
-
-def merge(left: list[GALOIS_POLY_128], right: list[GALOIS_POLY_128]) -> list[GALOIS_POLY_128]:
-    if left == []:
-        return right
-    if right == []:
-        return left
-    x1, *R1 = left
-    x2, *R2 = right
-    if compare(x1, x2):
-        return [x1] + merge(R1, right)
-    else:
-        return [x2] + merge(left, R2)
-
-
-def compare(poly1: GALOIS_POLY_128, poly2: GALOIS_POLY_128) -> bool:
-    poly1_deg = poly1.get_degree()
-    poly2_deg = poly2.get_degree()
-    if poly1_deg < poly2_deg:
-        return True
-    elif poly1_deg > poly2_deg:
-        return False
-
-    poly1_coeffs = poly1.get_coefficients()
-    poly2_coeffs = poly2.get_coefficients()
-    for i in range(1, poly1_deg + 2):
-        # same degree? -> compare coefficient starting with largest power
-        if poly1_coeffs[-i] > poly2_coeffs[-i]:
-            return False
-        if poly1_coeffs[-i] < poly2_coeffs[-i]:
-            return True
-    return True
+    poly.make_monic()
+    poly = poly.get_coefficients()
+    poly = [reverse_bits_in_bytes(term).to_bytes(16, "little") for term in poly]
+    return [bytes_to_base64(coeff) for coeff in poly]

@@ -264,3 +264,47 @@ def merge(left, right):
     result += right[j:]
 
     return result
+
+
+def mergesort(list: list) -> list:
+    length = len(list)
+    if length <= 1:
+        return list
+    mid = length // 2
+    left = list[:mid]
+    right = list[mid:]
+    left = mergesort(left)
+    right = mergesort(right)
+    return merge(left, right)
+
+
+def merge(left: list, right: list) -> list:
+    if left == []:
+        return right
+    if right == []:
+        return left
+    x1, *R1 = left
+    x2, *R2 = right
+    if compare(x1, x2):
+        return [x1] + merge(R1, right)
+    else:
+        return [x2] + merge(left, R2)
+
+
+def compare(poly1, poly2) -> bool:
+    poly1_deg = poly1.get_degree()
+    poly2_deg = poly2.get_degree()
+    if poly1_deg < poly2_deg:
+        return True
+    elif poly1_deg > poly2_deg:
+        return False
+
+    poly1_coeffs = poly1.get_coefficients()
+    poly2_coeffs = poly2.get_coefficients()
+    for i in range(1, poly1_deg + 2):
+        # same degree? -> compare coefficient starting with largest power
+        if poly1_coeffs[-i] > poly2_coeffs[-i]:
+            return False
+        if poly1_coeffs[-i] < poly2_coeffs[-i]:
+            return True
+    return True

@@ -325,6 +325,13 @@ class GALOIS_POLY_128:
 
         return result
 
+    def make_monic(self):
+        # Make the polynomial monic
+        if self._coefficients:
+            lead_term = self._coefficients[-1]
+            if lead_term._value != 1:
+                self._coefficients = [coeff // lead_term for coeff in self._coefficients]
+
     def __str__(self) -> str:
         return f"{[str(coeff) for coeff in self._coefficients]}"
 
