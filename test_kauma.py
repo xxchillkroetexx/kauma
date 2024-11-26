@@ -133,5 +133,23 @@ def test_gfpoly_powmod():
     assert evaluate_testcases(testcase_json=testcases_json) == output_json
 
 
+def test_gfpoly_sort():
+    with open("testcases/task04/sort.json", "r") as file:
+        testcases_json = json.load(file)
+    with open("testcases/task04/sort_out.json", "r") as file:
+        output_json = json.load(file)
+
+    assert evaluate_testcases(testcase_json=testcases_json) == output_json
+
+
+def test_gfpoly_sort_as():
+    with open("testcases/task04/gfpoly_sort_in.json", "r") as file:
+        testcases_json = json.load(file)
+    with open("testcases/task04/gfpoly_sort_out.json", "r") as file:
+        output_json = json.load(file)
+
+    assert evaluate_testcases(testcase_json=testcases_json) == output_json
+
+
 if __name__ == "__main__":
     pytest.main()

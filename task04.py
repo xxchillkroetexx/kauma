@@ -24,9 +24,8 @@ def gfpoly_sort(polys: dict[list[list]]) -> list[list[str]]:
     # sort the polynomials by their degree
     # if they have the same degree, by the coefficients starting from the highest degree
 
-    polys: list[GALOIS_POLY_128] = sorted(
-        polys, key=lambda poly: (poly.get_degree(), poly.get_coefficients()), reverse=False
-    )
+    polys: list[GALOIS_POLY_128]
+    polys.sort()
 
     return_list = list()
     for poly in polys:

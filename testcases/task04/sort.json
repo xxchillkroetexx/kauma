@@ -1,6 +1,6 @@
 {
     "testcases": {
-        "gfpoly_powmod_01": {
+        "gfpoly_sort_01": {
             "action": "gfpoly_sort",
             "arguments": {
                 "polys": [
@@ -31,13 +31,13 @@
                 ]
             }
         },
-        "gfpoly_powmod_02": {
+        "gfpoly_sort_02": {
             "action": "gfpoly_sort",
             "arguments": {
                 "polys": []
             }
         },
-        "gfpoly_powmod_03": {
+        "gfpoly_sort_03": {
             "action": "gfpoly_sort",
             "arguments": {
                 "polys": [
@@ -55,6 +55,21 @@
                     ],
                     [
                         "QAAAAAAAAAAAAAAAAAAAQQ=="
+                    ]
+                ]
+            }
+        },
+        "gfpoly_sort_04": {
+            "action": "gfpoly_sort",
+            "arguments": {
+                "polys": [
+                    [
+                        "AAAAAAAAAAAAAAAAAAAAAA==",
+                        "NeverGonnaGiveYouUpAAA=="
+                    ],
+                    [
+                        "gAAAAAAAAAAAAAAAAAAAAA==",
+                        "gAAAAAAAAAAAAAAAAAAAAA=="
                     ]
                 ]
             }
