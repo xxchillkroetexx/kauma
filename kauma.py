@@ -17,6 +17,7 @@ from task03 import gfdiv, gfpoly_add, gfpoly_divmod, gfpoly_mul, gfpoly_pow, gfp
 from task04 import (
     gfpoly_diff,
     gfpoly_factor_ddf,
+    gfpoly_factor_edf,
     gfpoly_factor_sff,
     gfpoly_gcd,
     gfpoly_make_monic,
@@ -157,6 +158,11 @@ def evaluate_testcase(testcase: dict) -> dict:
                 return {"factors": gfpoly_factor_ddf(testcase["arguments"])}
             except ValueError as e:
                 raise ValueError(f"Error in gfpoly_factor_ddf: {e}")
+        case "gfpoly_factor_edf":
+            try:
+                return {"factors": gfpoly_factor_edf(testcase["arguments"])}
+            except ValueError as e:
+                raise ValueError(f"Error in gfpoly_factor_edf: {e}")
 
         case _:
             raise ValueError("Invalid action")

@@ -1,3 +1,4 @@
+import random
 import socket
 from helper import (
     aes_ecb,
@@ -438,6 +439,26 @@ class GALOIS_POLY_128:
             z.append((fstar, fstar.get_degree()))
         elif len(z) == 0:
             z.append((f, 1))
+        sorted_z = mergesort(z)
+        return sorted_z
+
+    def edf(self, d: int) -> list[Self]:
+        f = GALOIS_POLY_128(self._coefficients.copy())
+        q = 2**128
+        n = f.get_degree() // d
+        z = [self]
+        while len(z) < n:
+            h_scalars = [GALOIS_ELEMENT_128(random.getrandbits(128)) for _ in range(f.get_degree() - 1)]
+            h_scalars.append(GALOIS_ELEMENT_128(1))
+            h = GALOIS_POLY_128(h_scalars)
+            g = h.powmod((((q**d) - 1) // 3), f) - GALOIS_POLY_128([GALOIS_ELEMENT_128(1)])
+            for u in z:
+                if u.get_degree() > d:
+                    j = u.gcd(g)
+                    if j != GALOIS_POLY_128([GALOIS_ELEMENT_128(1)]) and j != u:
+                        z.remove(u)
+                        z.append(j)
+                        z.append(u / j)
         sorted_z = mergesort(z)
         return sorted_z
 
