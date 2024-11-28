@@ -79,3 +79,22 @@ def gfpoly_diff(poly: dict[list[str]]) -> list[str]:
     diff_poly = diff_poly.get_coefficients()
     diff_poly = [reverse_bits_in_bytes(term).to_bytes(16, "little") for term in diff_poly]
     return [bytes_to_base64(coeff) for coeff in diff_poly]
+
+
+def gfpoly_gcd(dict: dict) -> list:
+    """
+    Calculate the greatest common divisor of the two polynomials
+    """
+    poly1 = dict["A"]
+    poly2 = dict["B"]
+    poly1 = [base64_to_bytes(coeff) for coeff in poly1]
+    poly2 = [base64_to_bytes(coeff) for coeff in poly2]
+    coefficients1 = [GALOIS_ELEMENT_128(reverse_bits_in_bytes(int.from_bytes(coeff, "little"))) for coeff in poly1]
+    coefficients2 = [GALOIS_ELEMENT_128(reverse_bits_in_bytes(int.from_bytes(coeff, "little"))) for coeff in poly2]
+    poly1: GALOIS_POLY_128 = GALOIS_POLY_128(coefficients=coefficients1)
+    poly2: GALOIS_POLY_128 = GALOIS_POLY_128(coefficients=coefficients2)
+
+    gcd_poly = poly1.gcd(poly2)
+    gcd_poly = gcd_poly.get_coefficients()
+    gcd_poly = [reverse_bits_in_bytes(term).to_bytes(16, "little") for term in gcd_poly]
+    return [bytes_to_base64(coeff) for coeff in gcd_poly]
