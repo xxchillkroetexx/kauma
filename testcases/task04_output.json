@@ -104,6 +104,22 @@
                     "degree": 3
                 }
             ]
+        },
+        "gfpoly_factor_edf_01": {
+            "factors": [
+                [
+                    "iwAAAAAAAAAAAAAAAAAAAA==",
+                    "CAAAAAAAAAAAAAAAAAAAAA==",
+                    "AAAAAAAAAAAAAAAAAAAAAA==",
+                    "gAAAAAAAAAAAAAAAAAAAAA=="
+                ],
+                [
+                    "kAAAAAAAAAAAAAAAAAAAAA==",
+                    "CAAAAAAAAAAAAAAAAAAAAA==",
+                    "wAAAAAAAAAAAAAAAAAAAAA==",
+                    "gAAAAAAAAAAAAAAAAAAAAA=="
+                ]
+            ]
         }
     }
 }

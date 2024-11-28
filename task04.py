@@ -144,3 +144,26 @@ def gfpoly_factor_ddf(input_dict: dict) -> list[dict]:
 
         return_list.append(tmp_dict)
     return return_list
+
+
+def gfpoly_factor_edf(input_dict: dict) -> list[dict]:
+    """
+    Factor the polynomial into equal-degree factors
+    """
+    poly = input_dict["F"]
+    d = input_dict["d"]
+    poly = [base64_to_bytes(coeff) for coeff in poly]
+    coefficients = [GALOIS_ELEMENT_128(reverse_bits_in_bytes(int.from_bytes(coeff, "little"))) for coeff in poly]
+    poly = GALOIS_POLY_128(coefficients=coefficients)
+
+    edf = poly.edf(d)
+    factors = list()
+    for factor in edf:
+        factors.append(factor)
+
+    return_list = list()
+    for factor in factors:
+        factor = factor.get_coefficients()
+        factor = [reverse_bits_in_bytes(term).to_bytes(16, "little") for term in factor]
+        return_list.append([bytes_to_base64(coeff) for coeff in factor])
+    return return_list
