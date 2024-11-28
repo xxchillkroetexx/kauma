@@ -14,7 +14,15 @@ from task01 import (
 )
 from task02 import gcm_encrypt, gcm_decrypt, padding_oracle
 from task03 import gfdiv, gfpoly_add, gfpoly_divmod, gfpoly_mul, gfpoly_pow, gfpoly_powmod
-from task04 import gfpoly_diff, gfpoly_factor_sff, gfpoly_gcd, gfpoly_make_monic, gfpoly_sort, gfpoly_sqrt
+from task04 import (
+    gfpoly_diff,
+    gfpoly_factor_ddf,
+    gfpoly_factor_sff,
+    gfpoly_gcd,
+    gfpoly_make_monic,
+    gfpoly_sort,
+    gfpoly_sqrt,
+)
 
 
 def evaluate_testcases(testcase_json: dict) -> dict:
@@ -144,6 +152,11 @@ def evaluate_testcase(testcase: dict) -> dict:
                 return {"factors": gfpoly_factor_sff(testcase["arguments"])}
             except ValueError as e:
                 raise ValueError(f"Error in gfpoly_factor_sff: {e}")
+        case "gfpoly_factor_ddf":
+            try:
+                return {"factors": gfpoly_factor_ddf(testcase["arguments"])}
+            except ValueError as e:
+                raise ValueError(f"Error in gfpoly_factor_ddf: {e}")
 
         case _:
             raise ValueError("Invalid action")

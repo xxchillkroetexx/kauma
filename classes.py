@@ -417,9 +417,29 @@ class GALOIS_POLY_128:
 
         return z
 
-    def ddf(self) -> Self:  # TODO
-        # Compute the derivative of a polynomial
-        return self
+    def ddf(self) -> list[tuple[Self, int]]:
+        f = GALOIS_POLY_128(self._coefficients.copy())
+        q = 2**128
+        z = []
+        d = 1
+        fstar = GALOIS_POLY_128(f._coefficients.copy())
+        while fstar.get_degree() >= 2 * d:
+            h = (
+                GALOIS_POLY_128([GALOIS_ELEMENT_128(0), GALOIS_ELEMENT_128(1)]).powmod(pow(q, d), fstar)
+                - GALOIS_POLY_128([GALOIS_ELEMENT_128(0), GALOIS_ELEMENT_128(1)]) % fstar
+            )
+            g = h.gcd(fstar)
+            if g != GALOIS_POLY_128([GALOIS_ELEMENT_128(1)]):
+                z.append((g, d))
+                fstar = fstar / g
+            d += 1
+
+        if fstar != GALOIS_POLY_128([GALOIS_ELEMENT_128(1)]):
+            z.append((fstar, fstar.get_degree()))
+        elif len(z) == 0:
+            z.append((f, 1))
+        sorted_z = mergesort(z)
+        return sorted_z
 
     def __str__(self) -> str:
         return f"{[str(coeff) for coeff in self._coefficients]}"

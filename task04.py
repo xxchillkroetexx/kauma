@@ -123,7 +123,7 @@ def gfpoly_factor_sff(input_dict: dict) -> list[dict]:
     return return_list
 
 
-def gfpoly_factor_ddf(input_dict: dict) -> list[dict]:  # TODO
+def gfpoly_factor_ddf(input_dict: dict) -> list[dict]:
     """
     Factor the polynomial into distinct-degree factors
     """
@@ -135,12 +135,12 @@ def gfpoly_factor_ddf(input_dict: dict) -> list[dict]:  # TODO
     factors = poly.ddf()
 
     return_list = list()
-    for factor, exponent in factors:
+    for factor, degree in factors:
         tmp_dict = dict()
         factor = factor.get_coefficients()
         factor = [reverse_bits_in_bytes(term).to_bytes(16, "little") for term in factor]
         tmp_dict["factor"] = [bytes_to_base64(coeff) for coeff in factor]
-        tmp_dict["exponent"] = exponent
+        tmp_dict["degree"] = degree
 
         return_list.append(tmp_dict)
     return return_list
