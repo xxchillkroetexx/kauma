@@ -346,20 +346,31 @@ class GALOIS_POLY_128:
 
         return result
 
-    def make_monic(self):
+    def make_monic(self) -> None:
         # Make the polynomial monic
         if self._coefficients:
             lead_term = self._coefficients[-1]
             if lead_term._value != 1:
                 self._coefficients = [coeff // lead_term for coeff in self._coefficients]
 
-    def sqrt(self):
+    def sqrt(self) -> Self:
         # Calculate the square root of the polynomial
         # with calculation of d^(2^(128-1))
         roots = list()
         for i in range(0, self.get_degree() + 1, 2):
             roots.append(self._coefficients[i].squareroot())
         return GALOIS_POLY_128(coefficients=roots)
+
+    def diff(self) -> Self:
+        # move all coefficients one position lower
+        diff = self._coefficients[1:]
+        # make all former even coefficients zero
+        for i in range(1, len(diff), 2):
+            diff[i] = GALOIS_ELEMENT_128(0)
+
+        diff = GALOIS_POLY_128(coefficients=diff)
+        diff._clean_zeroes()
+        return diff
 
     def __str__(self) -> str:
         return f"{[str(coeff) for coeff in self._coefficients]}"

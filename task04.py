@@ -36,7 +36,7 @@ def gfpoly_sort(polys: dict[list[list]]) -> list[list[str]]:
     return return_list
 
 
-def gfpoly_make_monic(poly: dict[list[str]]) -> list[str]:  # TODO
+def gfpoly_make_monic(poly: dict[list[str]]) -> list[str]:
     """
     Make the polynomial monic
     """
@@ -64,3 +64,18 @@ def gfpoly_sqrt(poly: dict[list[str]]) -> list[str]:
     sqrt_poly = sqrt_poly.get_coefficients()
     sqrt_poly = [reverse_bits_in_bytes(term).to_bytes(16, "little") for term in sqrt_poly]
     return [bytes_to_base64(coeff) for coeff in sqrt_poly]
+
+
+def gfpoly_diff(poly: dict[list[str]]) -> list[str]:
+    """
+    differentiate the polynomial
+    """
+    poly = poly["F"]
+    poly = [base64_to_bytes(coeff) for coeff in poly]
+    coefficients = [GALOIS_ELEMENT_128(reverse_bits_in_bytes(int.from_bytes(coeff, "little"))) for coeff in poly]
+    poly: GALOIS_POLY_128 = GALOIS_POLY_128(coefficients=coefficients)
+
+    diff_poly = poly.diff()
+    diff_poly = diff_poly.get_coefficients()
+    diff_poly = [reverse_bits_in_bytes(term).to_bytes(16, "little") for term in diff_poly]
+    return [bytes_to_base64(coeff) for coeff in diff_poly]

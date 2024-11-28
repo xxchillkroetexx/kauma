@@ -14,7 +14,7 @@ from task01 import (
 )
 from task02 import gcm_encrypt, gcm_decrypt, padding_oracle
 from task03 import gfdiv, gfpoly_add, gfpoly_divmod, gfpoly_mul, gfpoly_pow, gfpoly_powmod
-from task04 import gfpoly_make_monic, gfpoly_sort, gfpoly_sqrt
+from task04 import gfpoly_diff, gfpoly_make_monic, gfpoly_sort, gfpoly_sqrt
 
 
 def evaluate_testcases(testcase_json: dict) -> dict:
@@ -129,6 +129,11 @@ def evaluate_testcase(testcase: dict) -> dict:
                 return {"S": gfpoly_sqrt(testcase["arguments"])}
             except ValueError as e:
                 raise ValueError(f"Error in gfpoly_sqrt: {e}")
+        case "gfpoly_diff":
+            try:
+                return {"F'": gfpoly_diff(testcase["arguments"])}
+            except ValueError as e:
+                raise ValueError(f"Error in gfpoly_diff: {e}")
 
         case _:
             raise ValueError("Invalid action")
