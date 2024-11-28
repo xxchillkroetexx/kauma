@@ -3,6 +3,7 @@ from helper import (
     aes_ecb,
     bytes_to_base64,
     coefficients_to_min_polynom,
+    mergesort,
     reverse_bits_in_bytes,
     split_blocks,
     xor_bytes,
@@ -284,34 +285,39 @@ class GALOIS_POLY_128:
 
         returns: the quotient and the remainder
         """
-        if other._coefficients == [GALOIS_ELEMENT_128(0)]:
+        if all(scalar._value == 0 for scalar in other._coefficients):
             raise ValueError("Division by zero")
 
-        # initialize the quotient and the remainder
-        quotient = list()
-        remainder = self.get_coefficients_GF_ELEMENT()[:]
-        unten = other.get_coefficients_GF_ELEMENT()[:]
+        if len(self._coefficients) < len(other._coefficients):
+            return GALOIS_POLY_128([GALOIS_ELEMENT_128(0)]), self
 
-        for i in range(len(self) - len(other), -1, -1):
+        dividend = GALOIS_POLY_128(self._coefficients)
+        divisor = GALOIS_POLY_128(other._coefficients)
+        quotient = GALOIS_POLY_128(
+            [GALOIS_ELEMENT_128(0)] * (len(dividend._coefficients) - len(divisor._coefficients) + 1)
+        )
 
-            obtained_term = remainder[-1] // unten[-1]
+        for i in range(len(dividend._coefficients) - len(divisor._coefficients), -1, -1):
+            coef = dividend._coefficients[i + len(divisor._coefficients) - 1] // divisor._coefficients[-1]
+            quotient._coefficients[i] = coef
 
-            quotient.insert(0, obtained_term)
+            for j in range(len(divisor._coefficients)):
+                dividend._coefficients[i + j] -= divisor._coefficients[j] * coef
 
-            temp = GALOIS_POLY_128(coefficients=[obtained_term]) * GALOIS_POLY_128(coefficients=unten)
+        dividend._clean_zeroes()
+        quotient._clean_zeroes()
+        return quotient, dividend
 
-            # insert i * GF_ELEMENT_128(0) to the front of the temp coefficients
-            temp = GALOIS_POLY_128(coefficients=[GALOIS_ELEMENT_128(0)] * i + temp.get_coefficients_GF_ELEMENT())
+    def __truediv__(self, other: Self) -> Self:
+        """
+        Divide two polynomials in GF(2^128)
 
-            remainder = (GALOIS_POLY_128(coefficients=remainder) - temp).get_coefficients_GF_ELEMENT()
+        other: the other polynomial
 
-        if len(quotient) == 0:
-            quotient = [GALOIS_ELEMENT_128(0)]
-
-        quotient = GALOIS_POLY_128(coefficients=quotient)
-        remainder = GALOIS_POLY_128(coefficients=remainder)
-
-        return quotient, remainder
+        returns: the quotient
+        """
+        quotient, _ = self // other
+        return quotient
 
     def __mod__(self, other: Self) -> Self:
         """
@@ -384,6 +390,34 @@ class GALOIS_POLY_128:
             a, b = b, a % b
         a.make_monic()
         return a
+
+    def sff(self) -> list[tuple[Self, int]]:
+        self.make_monic()
+        c = self.gcd(self.diff())
+        self = self / c
+
+        z = []
+        exponent = 1
+        while self.get_coefficients() != [1]:
+            y = self.gcd(c)
+            if self != y:
+                q = self / y
+                z.append((q, exponent))
+            self = y
+            c = c / y
+            exponent += 1
+
+        if c.get_coefficients() != [1]:
+            # Recursive descent, add all that are found and
+            # multiply their exponent by two
+            sqrt_c = c.sqrt()
+            for fstar, estar in sqrt_c.sff():
+                z.append((fstar, estar * 2))
+
+        # sort list by exponent
+        z = mergesort(z)
+
+        return z
 
     def __str__(self) -> str:
         return f"{[str(coeff) for coeff in self._coefficients]}"
