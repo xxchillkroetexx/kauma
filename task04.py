@@ -98,3 +98,26 @@ def gfpoly_gcd(dict: dict) -> list:
     gcd_poly = gcd_poly.get_coefficients()
     gcd_poly = [reverse_bits_in_bytes(term).to_bytes(16, "little") for term in gcd_poly]
     return [bytes_to_base64(coeff) for coeff in gcd_poly]
+
+
+def gfpoly_factor_sff(input_dict: dict) -> list[dict]:
+    """
+    Factor the polynomial into square-free factors
+    """
+    poly = input_dict["F"]
+    poly = [base64_to_bytes(coeff) for coeff in poly]
+    coefficients = [GALOIS_ELEMENT_128(reverse_bits_in_bytes(int.from_bytes(coeff, "little"))) for coeff in poly]
+    poly: GALOIS_POLY_128 = GALOIS_POLY_128(coefficients=coefficients)
+
+    factors = poly.sff()
+
+    return_list = list()
+    for factor, exponent in factors:
+        tmp_dict = dict()
+        factor = factor.get_coefficients()
+        factor = [reverse_bits_in_bytes(term).to_bytes(16, "little") for term in factor]
+        tmp_dict["factor"] = [bytes_to_base64(coeff) for coeff in factor]
+        tmp_dict["exponent"] = exponent
+
+        return_list.append(tmp_dict)
+    return return_list

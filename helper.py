@@ -285,10 +285,16 @@ def merge(left: list, right: list) -> list:
         return left
     x1, *R1 = left
     x2, *R2 = right
-    if compare(x1, x2):
-        return [x1] + merge(R1, right)
-    else:
-        return [x2] + merge(left, R2)
+    try:
+        if compare(x1[0], x2[0]):
+            return [x1] + merge(R1, right)
+        else:
+            return [x2] + merge(left, R2)
+    except:
+        if compare(x1, x2):
+            return [x1] + merge(R1, right)
+        else:
+            return [x2] + merge(left, R2)
 
 
 def compare(poly1, poly2) -> bool:
