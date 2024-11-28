@@ -368,13 +368,11 @@ class GALOIS_POLY_128:
         return GALOIS_POLY_128(coefficients=roots)
 
     def diff(self) -> Self:
-        # move all coefficients one position lower
-        diff = self._coefficients[1:]
-        # make all former even coefficients zero
+        # init the difference polynomial
+        diff = GALOIS_POLY_128(coefficients=[GALOIS_ELEMENT_128(0)] * len(self._coefficients))
+        # differntiate the polynomial
         for i in range(1, len(diff), 2):
-            diff[i] = GALOIS_ELEMENT_128(0)
-
-        diff = GALOIS_POLY_128(coefficients=diff)
+            diff._coefficients[i - 1] = self._coefficients[i]
         diff._clean_zeroes()
         return diff
 
@@ -418,6 +416,10 @@ class GALOIS_POLY_128:
         z = mergesort(z)
 
         return z
+
+    def ddf(self) -> Self:  # TODO
+        # Compute the derivative of a polynomial
+        return self
 
     def __str__(self) -> str:
         return f"{[str(coeff) for coeff in self._coefficients]}"
