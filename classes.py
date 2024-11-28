@@ -463,7 +463,7 @@ class GALOIS_POLY_128:
         return self._coefficients
 
     def _clean_zeroes(self):
-        while self._coefficients[-1].get_block() == 0 and len(self._coefficients) > 1:
+        while len(self._coefficients) > 1 and self._coefficients[-1]._value == 0:
             self._coefficients.pop()
 
     def __len__(self):
