@@ -372,6 +372,19 @@ class GALOIS_POLY_128:
         diff._clean_zeroes()
         return diff
 
+    def gcd(self, other: Self) -> Self:
+        # Compute the greatest common divisor of two polynomials
+        a = GALOIS_POLY_128(self._coefficients.copy())
+        b = GALOIS_POLY_128(other._coefficients.copy())
+        # Change a and b if b is greater a
+        if a < b:
+            a, b = b, a
+        # Implement Euclidean algorithm
+        while b != GALOIS_POLY_128([GALOIS_ELEMENT_128(0)]):
+            a, b = b, a % b
+        a.make_monic()
+        return a
+
     def __str__(self) -> str:
         return f"{[str(coeff) for coeff in self._coefficients]}"
 
