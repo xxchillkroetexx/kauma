@@ -15,6 +15,7 @@ from task01 import (
 from task02 import gcm_encrypt, gcm_decrypt, padding_oracle
 from task03 import gfdiv, gfpoly_add, gfpoly_divmod, gfpoly_mul, gfpoly_pow, gfpoly_powmod
 from task04 import (
+    gcm_crack,
     gfpoly_diff,
     gfpoly_factor_ddf,
     gfpoly_factor_edf,
@@ -163,6 +164,11 @@ def evaluate_testcase(testcase: dict) -> dict:
                 return {"factors": gfpoly_factor_edf(testcase["arguments"])}
             except ValueError as e:
                 raise ValueError(f"Error in gfpoly_factor_edf: {e}")
+        case "gcm_crack":
+            try:
+                return gcm_crack(testcase["arguments"])
+            except ValueError as e:
+                raise ValueError(f"Error in gcm_crack: {e}")
 
         case _:
             raise ValueError("Invalid action")
