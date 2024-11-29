@@ -1,5 +1,5 @@
 from classes import GALOIS_ELEMENT_128, GALOIS_POLY_128
-from helper import base64_to_bytes, mergesort, reverse_bits_in_bytes, bytes_to_base64
+from helper import base64_to_bytes, mergesort, reverse_bits_in_bytes, bytes_to_base64, split_blocks, xor_bytes
 
 
 def gfpoly_sort(polys: dict[list[list]]) -> list[list[str]]:
@@ -167,3 +167,194 @@ def gfpoly_factor_edf(input_dict: dict) -> list[dict]:
         factor = [reverse_bits_in_bytes(term).to_bytes(16, "little") for term in factor]
         return_list.append([bytes_to_base64(coeff) for coeff in factor])
     return return_list
+
+
+def gcm_crack(args: dict) -> dict:
+    nonce = args["nonce"]
+    nonce = reverse_bits_in_bytes(int.from_bytes(base64_to_bytes(nonce), byteorder="little"))
+    # extract all the message data from the input
+    m1 = args["m1"]
+    m1_ciphertext = base64_to_bytes(m1["ciphertext"])
+    m1_ass_data = base64_to_bytes(m1["associated_data"])
+    m1_tag = base64_to_bytes(m1["tag"])
+
+    m2 = args["m2"]
+    m2_ciphertext = base64_to_bytes(m2["ciphertext"])
+    m2_ass_data = base64_to_bytes(m2["associated_data"])
+    m2_tag = base64_to_bytes(m2["tag"])
+
+    m3 = args["m3"]
+    m3_ciphertext = base64_to_bytes(m3["ciphertext"])
+    m3_ass_data = base64_to_bytes(m3["associated_data"])
+    m3_tag = base64_to_bytes(m3["tag"])
+
+    forgery = args["forgery"]
+    forgery_ciphertext = base64_to_bytes(forgery["ciphertext"])
+    forgery_ass_data = base64_to_bytes(forgery["associated_data"])
+
+    # Calculate polynomial for m1, starting with the associated data padded to 16 bytes
+    (
+        m1_scalar,
+        m1_scalar_reversed,
+        m1_ciphertext_len,
+        m1_ass_data_len,
+        m1_ass_data_padded,
+        m1_ciphertext_padded,
+    ) = prepare(ciphertext=m1_ciphertext, ass_data=m1_ass_data, tag=m1_tag)
+
+    # Calculate polynomial for m2, starting with the associated data padded to 16 bytes
+    (
+        m2_scalar,
+        m2_scalar_reversed,
+        m2_ciphertext_len,
+        m2_ass_data_len,
+        m2_ass_data_padded,
+        m2_ciphertext_padded,
+    ) = prepare(ciphertext=m2_ciphertext, ass_data=m2_ass_data, tag=m2_tag)
+
+    # Calculate polynomial for m3, starting with the associated data padded to 16 bytes
+    (
+        m3_scalar,
+        m3_scalar_reversed,
+        m3_ciphertext_len,
+        m3_ass_data_len,
+        m3_ass_data_padded,
+        m3_ciphertext_padded,
+    ) = prepare(ciphertext=m3_ciphertext, ass_data=m3_ass_data, tag=m3_tag)
+
+    # Calculate polynomial for forgery, starting with the associated data padded to 16 bytes
+    forgery_scalar = []
+    forgery_coeff_bytes = []
+    forgery_ass_data_padded = []
+    forgery_ass_data_padded = forgery_ass_data + b"\x00" * ((16 - len(forgery_ass_data)) % 16)
+    for block in split_blocks(forgery_ass_data_padded, 16):
+        forgery_coeff_bytes.append(block)
+        forgery_scalar.append(GALOIS_ELEMENT_128(reverse_bits_in_bytes(int.from_bytes(block, byteorder="little"))))
+
+    forgery_ciphertext_padded = forgery_ciphertext + b"\x00" * ((16 - len(forgery_ciphertext)) % 16)
+    for block in split_blocks(forgery_ciphertext_padded, 16):
+        forgery_coeff_bytes.append(block)
+        forgery_scalar.append(GALOIS_ELEMENT_128(reverse_bits_in_bytes(int.from_bytes(block, byteorder="little"))))
+    forgery_ciphertext_len = len(forgery_ciphertext_padded) // 16
+    forgery_ass_data_len = len(forgery_ass_data_padded) // 16
+
+    # padd smaller polynomial to the size of the larger polynomial
+    m1_poly = GALOIS_POLY_128(m1_scalar_reversed)
+    m2_poly = GALOIS_POLY_128(m2_scalar_reversed)
+    poly_sub = m1_poly - m2_poly
+    poly_sub.make_monic()
+    result = []
+    block = bytearray(16)
+
+    # Calculate factors of poly_sub
+    # First step is to calculate the SFF of poly_sub
+    sff_factors = poly_sub.sff()
+    # sff output is a tuple of polynomials and integers(factors)
+
+    for poly, degree in sff_factors:
+        # Second step is to calculate the DDF of the polynomial
+        ddf_factors = poly.ddf()
+        # ddf output is a tuple of polynomials and integers(degree)
+        for ddf_poly, ddf_degree in ddf_factors:
+            irreducible_factors = ddf_poly.edf(ddf_degree)
+            # Add factors with their multiplicity
+            for factor in irreducible_factors:
+                result.append((factor, degree))
+
+    result: list[tuple[GALOIS_POLY_128, int]]  # type hinting
+    for candidate_factor, candidate_degree in result:
+        block = bytearray(16)
+        auth_key_h = candidate_factor._coefficients[0]
+        if candidate_degree == 1:
+            for i in range(m1_ass_data_len):
+                block = xor_bytes(block, m1_ass_data_padded[i * 16 : (i + 1) * 16])
+                block = GALOIS_ELEMENT_128((reverse_bits_in_bytes(int.from_bytes(block, byteorder="little"))))
+                block = (reverse_bits_in_bytes((block * auth_key_h)._value)).to_bytes(16, byteorder="little")
+
+            for i in range(m1_ciphertext_len):
+                block = xor_bytes(block, m1_ciphertext_padded[i * 16 : (i + 1) * 16])
+                block = GALOIS_ELEMENT_128((reverse_bits_in_bytes(int.from_bytes(block, byteorder="little"))))
+                block = (reverse_bits_in_bytes((block * auth_key_h)._value)).to_bytes(16, byteorder="little")
+
+            block = bytearray(xor_bytes(block, gen_L(input_data=m1_ciphertext, ass_data=m1_ass_data)))
+
+            block = GALOIS_ELEMENT_128((reverse_bits_in_bytes(int.from_bytes(block, byteorder="little"))))
+            block = (reverse_bits_in_bytes((block * auth_key_h)._value)).to_bytes(16, byteorder="little")
+            auth_tag_candidate = bytearray(xor_bytes(block, m1_tag))
+            block = bytearray(16)
+
+            for i in range(m3_ass_data_len):
+                block = xor_bytes(block, m3_ass_data_padded[i * 16 : (i + 1) * 16])
+
+                block = GALOIS_ELEMENT_128((reverse_bits_in_bytes(int.from_bytes(block, byteorder="little"))))
+                block = (reverse_bits_in_bytes((block * auth_key_h)._value)).to_bytes(16, byteorder="little")
+
+            for i in range(m3_ciphertext_len):
+                block = xor_bytes(block, m3_ciphertext_padded[i * 16 : (i + 1) * 16])
+                block = GALOIS_ELEMENT_128((reverse_bits_in_bytes(int.from_bytes(block, byteorder="little"))))
+                block = (reverse_bits_in_bytes((block * auth_key_h)._value)).to_bytes(16, byteorder="little")
+
+            block = bytearray(xor_bytes(block, gen_L(input_data=m3_ciphertext, ass_data=m3_ass_data)))
+            block = GALOIS_ELEMENT_128((reverse_bits_in_bytes(int.from_bytes(block, byteorder="little"))))
+            block = (reverse_bits_in_bytes((block * auth_key_h)._value)).to_bytes(16, byteorder="little")
+            auth_tag = bytearray(xor_bytes(block, auth_tag_candidate))
+            if auth_tag == m3_tag:
+                break
+        block = bytearray(16)
+    block = bytearray(16)
+    for i in range(forgery_ass_data_len):
+        block = xor_bytes(block, forgery_ass_data_padded[i * 16 : (i + 1) * 16])
+
+        block = GALOIS_ELEMENT_128((reverse_bits_in_bytes(int.from_bytes(block, byteorder="little"))))
+        block = (reverse_bits_in_bytes((block * auth_key_h)._value)).to_bytes(16, byteorder="little")
+
+    for i in range(forgery_ciphertext_len):
+        block = xor_bytes(block, forgery_ciphertext_padded[i * 16 : (i + 1) * 16])
+        block = GALOIS_ELEMENT_128((reverse_bits_in_bytes(int.from_bytes(block, byteorder="little"))))
+        block = (reverse_bits_in_bytes((block * auth_key_h)._value)).to_bytes(16, byteorder="little")
+
+    block = bytearray(xor_bytes(block, gen_L(input_data=forgery_ciphertext, ass_data=forgery_ass_data)))
+    block = GALOIS_ELEMENT_128((reverse_bits_in_bytes(int.from_bytes(block, byteorder="little"))))
+    block = (reverse_bits_in_bytes((block * auth_key_h)._value)).to_bytes(16, byteorder="little")
+    auth_tag = bytearray(xor_bytes(block, auth_tag_candidate))
+
+    return {
+        "tag": bytes_to_base64(auth_tag),
+        "H": bytes_to_base64(reverse_bits_in_bytes(auth_key_h._value).to_bytes(16, byteorder="little")),
+        "mask": bytes_to_base64(auth_tag_candidate),
+    }
+
+
+def gen_L(input_data: bytes, ass_data: bytes) -> bytes:
+    L = (len(ass_data) * 8).to_bytes(8, "big") + (len(input_data) * 8).to_bytes(8, "big")
+    return L
+
+
+def prepare(ciphertext, ass_data, tag):
+    coefficient = []
+    coeff_bytes = []
+    ass_data_padded = []
+
+    ass_data_padded = ass_data + b"\x00" * ((16 - len(ass_data)) % 16)
+    for block in split_blocks(ass_data_padded, 16):
+        coeff_bytes.append(block)
+        coefficient.append(GALOIS_ELEMENT_128(reverse_bits_in_bytes(int.from_bytes(block, byteorder="little"))))
+    ciphertext_padded = ciphertext + b"\x00" * ((16 - len(ciphertext)) % 16)
+
+    for block in split_blocks(ciphertext_padded, 16):
+        coeff_bytes.append(block)
+        coefficient.append(GALOIS_ELEMENT_128(reverse_bits_in_bytes(int.from_bytes(block, byteorder="little"))))
+
+    coefficient.append(
+        GALOIS_ELEMENT_128(
+            reverse_bits_in_bytes(int.from_bytes(gen_L(input_data=ciphertext, ass_data=ass_data), byteorder="little"))
+        )
+    )
+    coeff_bytes.append(gen_L(input_data=ciphertext, ass_data=ass_data))
+    coefficient.append(GALOIS_ELEMENT_128(reverse_bits_in_bytes(int.from_bytes(tag, byteorder="little"))))
+    coeff_bytes.append(tag)
+    scalar_reversed = coefficient[::-1]
+    ciphertext_len = len(ciphertext_padded) // 16
+    ass_data_len = len(ass_data_padded) // 16
+
+    return coefficient, scalar_reversed, ciphertext_len, ass_data_len, ass_data_padded, ciphertext_padded
