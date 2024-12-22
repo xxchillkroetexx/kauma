@@ -3,6 +3,13 @@ from helper import base64_to_bytes
 
 
 def padding_oracle(args: dict) -> bytes:
+    """
+    Decrypt a ciphertext using a padding oracle attack
+
+    args: dictionary containing the ciphertext, IV, hostname and port
+
+    returns: plaintext
+    """
     ciphertext = base64_to_bytes(args["ciphertext"])
     IV = base64_to_bytes(args["iv"])
     hostname = args["hostname"]
@@ -15,6 +22,13 @@ def padding_oracle(args: dict) -> bytes:
 
 
 def gcm_encrypt(args: dict) -> dict:
+    """
+    Encrypt a plaintext using GCM
+
+    args: dictionary containing the plaintext, nonce, key, algorithm and associated data
+
+    returns: ciphertext, tag and IV
+    """
     plaintext = base64_to_bytes(args["plaintext"])
     nonce = base64_to_bytes(args["nonce"])
     key = base64_to_bytes(args["key"])
@@ -27,6 +41,13 @@ def gcm_encrypt(args: dict) -> dict:
 
 
 def gcm_decrypt(args: dict) -> dict:
+    """
+    Decrypt ciphertext using GCM
+
+    args: dictionary containing ciphertext, nonce, key, algorithm and associated data
+
+    returns: plaintext and authenticity of auth tag
+    """
     algorithm = args["algorithm"]
     nonce = base64_to_bytes(args["nonce"])
     key = base64_to_bytes(args["key"])

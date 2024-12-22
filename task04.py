@@ -5,6 +5,10 @@ from helper import base64_to_bytes, mergesort, reverse_bits_in_bytes, bytes_to_b
 def gfpoly_sort(polys: dict[list[list]]) -> list[list[str]]:
     """
     Sort the polynomials in ascending order
+
+    polys: dictionary containing the polynomials
+
+    returns: sorted polynomials
     """
     polys = polys["polys"]
     for i in range(len(polys)):
@@ -39,6 +43,10 @@ def gfpoly_sort(polys: dict[list[list]]) -> list[list[str]]:
 def gfpoly_make_monic(poly: dict[list[str]]) -> list[str]:
     """
     Make the polynomial monic
+
+    poly: dictionary containing the polynomial
+
+    returns: monic polynomial
     """
     poly = poly["A"]
     poly = [base64_to_bytes(coeff) for coeff in poly]
@@ -54,6 +62,10 @@ def gfpoly_make_monic(poly: dict[list[str]]) -> list[str]:
 def gfpoly_sqrt(poly: dict[list[str]]) -> list[str]:
     """
     Calculate the square root of the polynomial
+
+    poly: dictionary containing the polynomial
+
+    returns: square root of the polynomial
     """
     poly = poly["Q"]
     poly = [base64_to_bytes(coeff) for coeff in poly]
@@ -69,6 +81,10 @@ def gfpoly_sqrt(poly: dict[list[str]]) -> list[str]:
 def gfpoly_diff(poly: dict[list[str]]) -> list[str]:
     """
     differentiate the polynomial
+
+    poly: dictionary containing the polynomial
+
+    returns: differentiated polynomial
     """
     poly = poly["F"]
     poly = [base64_to_bytes(coeff) for coeff in poly]
@@ -84,6 +100,10 @@ def gfpoly_diff(poly: dict[list[str]]) -> list[str]:
 def gfpoly_gcd(dict: dict) -> list:
     """
     Calculate the greatest common divisor of the two polynomials
+
+    dict: dictionary containing the polynomials A and B
+
+    returns: greatest common divisor of the two polynomials
     """
     poly1 = dict["A"]
     poly2 = dict["B"]
@@ -103,6 +123,10 @@ def gfpoly_gcd(dict: dict) -> list:
 def gfpoly_factor_sff(input_dict: dict) -> list[dict]:
     """
     Factor the polynomial into square-free factors
+
+    input_dict: dictionary containing the polynomial
+
+    returns: square-free factors of the polynomial
     """
     poly = input_dict["F"]
     poly = [base64_to_bytes(coeff) for coeff in poly]
@@ -126,6 +150,10 @@ def gfpoly_factor_sff(input_dict: dict) -> list[dict]:
 def gfpoly_factor_ddf(input_dict: dict) -> list[dict]:
     """
     Factor the polynomial into distinct-degree factors
+
+    input_dict: dictionary containing the polynomial
+
+    returns: distinct-degree factors of the polynomial
     """
     poly = input_dict["F"]
     poly = [base64_to_bytes(coeff) for coeff in poly]
@@ -149,6 +177,10 @@ def gfpoly_factor_ddf(input_dict: dict) -> list[dict]:
 def gfpoly_factor_edf(input_dict: dict) -> list[dict]:
     """
     Factor the polynomial into equal-degree factors
+
+    input_dict: dictionary containing the polynomial
+
+    returns: equal-degree factors of the polynomial
     """
     poly = input_dict["F"]
     d = input_dict["d"]
@@ -170,6 +202,13 @@ def gfpoly_factor_edf(input_dict: dict) -> list[dict]:
 
 
 def gcm_crack(args: dict) -> dict:
+    """
+    Crack GCM authentication tag
+
+    args: dictionary containing the nonce, m1, m2, m3 and forgery
+
+    returns: tag, H and mask
+    """
     nonce = args["nonce"]
     nonce = reverse_bits_in_bytes(int.from_bytes(base64_to_bytes(nonce), byteorder="little"))
     # extract all the message data from the input
@@ -276,7 +315,7 @@ def gcm_crack(args: dict) -> dict:
                 block = GALOIS_ELEMENT_128((reverse_bits_in_bytes(int.from_bytes(block, byteorder="little"))))
                 block = (reverse_bits_in_bytes((block * auth_key_h)._value)).to_bytes(16, byteorder="little")
 
-            block = bytearray(xor_bytes(block, gen_L(input_data=m1_ciphertext, ass_data=m1_ass_data)))
+            block = bytearray(xor_bytes(block, calc_L(input_data=m1_ciphertext, ass_data=m1_ass_data)))
 
             block = GALOIS_ELEMENT_128((reverse_bits_in_bytes(int.from_bytes(block, byteorder="little"))))
             block = (reverse_bits_in_bytes((block * auth_key_h)._value)).to_bytes(16, byteorder="little")
@@ -294,7 +333,7 @@ def gcm_crack(args: dict) -> dict:
                 block = GALOIS_ELEMENT_128((reverse_bits_in_bytes(int.from_bytes(block, byteorder="little"))))
                 block = (reverse_bits_in_bytes((block * auth_key_h)._value)).to_bytes(16, byteorder="little")
 
-            block = bytearray(xor_bytes(block, gen_L(input_data=m3_ciphertext, ass_data=m3_ass_data)))
+            block = bytearray(xor_bytes(block, calc_L(input_data=m3_ciphertext, ass_data=m3_ass_data)))
             block = GALOIS_ELEMENT_128((reverse_bits_in_bytes(int.from_bytes(block, byteorder="little"))))
             block = (reverse_bits_in_bytes((block * auth_key_h)._value)).to_bytes(16, byteorder="little")
             auth_tag = bytearray(xor_bytes(block, auth_tag_candidate))
@@ -313,7 +352,7 @@ def gcm_crack(args: dict) -> dict:
         block = GALOIS_ELEMENT_128((reverse_bits_in_bytes(int.from_bytes(block, byteorder="little"))))
         block = (reverse_bits_in_bytes((block * auth_key_h)._value)).to_bytes(16, byteorder="little")
 
-    block = bytearray(xor_bytes(block, gen_L(input_data=forgery_ciphertext, ass_data=forgery_ass_data)))
+    block = bytearray(xor_bytes(block, calc_L(input_data=forgery_ciphertext, ass_data=forgery_ass_data)))
     block = GALOIS_ELEMENT_128((reverse_bits_in_bytes(int.from_bytes(block, byteorder="little"))))
     block = (reverse_bits_in_bytes((block * auth_key_h)._value)).to_bytes(16, byteorder="little")
     auth_tag = bytearray(xor_bytes(block, auth_tag_candidate))
@@ -325,7 +364,7 @@ def gcm_crack(args: dict) -> dict:
     }
 
 
-def gen_L(input_data: bytes, ass_data: bytes) -> bytes:
+def calc_L(input_data: bytes, ass_data: bytes) -> bytes:
     L = (len(ass_data) * 8).to_bytes(8, "big") + (len(input_data) * 8).to_bytes(8, "big")
     return L
 
@@ -347,10 +386,10 @@ def prepare(ciphertext, ass_data, tag):
 
     coefficient.append(
         GALOIS_ELEMENT_128(
-            reverse_bits_in_bytes(int.from_bytes(gen_L(input_data=ciphertext, ass_data=ass_data), byteorder="little"))
+            reverse_bits_in_bytes(int.from_bytes(calc_L(input_data=ciphertext, ass_data=ass_data), byteorder="little"))
         )
     )
-    coeff_bytes.append(gen_L(input_data=ciphertext, ass_data=ass_data))
+    coeff_bytes.append(calc_L(input_data=ciphertext, ass_data=ass_data))
     coefficient.append(GALOIS_ELEMENT_128(reverse_bits_in_bytes(int.from_bytes(tag, byteorder="little"))))
     coeff_bytes.append(tag)
     scalar_reversed = coefficient[::-1]

@@ -519,6 +519,14 @@ class PADDING_ORACLE:
         self.port = port
 
     def attack_padding_oracle(self, ciphertext: bytes, IV: bytes) -> bytes:
+        """
+        Attack the padding oracle to decrypt the given ciphertext
+
+        ciphertext: the ciphertext to decrypt
+        IV: the initialization vector
+
+        returns: the decrypted plaintext
+        """
         self.plaintext = b""
         plaintext_block = b""
         ciphertext_blocks = split_blocks(ciphertext, 16)
@@ -553,13 +561,27 @@ class PADDING_ORACLE:
         return self.plaintext
 
     def __set_padding_in_Q_for_next_byte(self, padding_byte: int, IV_xor_PT_raw: int) -> None:
-        # set the padding in Q
-        # q_n = D(C)_n ^ padding_byte
+        """
+        Set the padding in Q
+        q_n = D(C)_n ^ padding_byte
+
+        padding_byte: the padding byte
+        IV_xor_PT_raw: the raw IV xor PT
+
+        returns: None
+        """
         for i in range(1, padding_byte + 1):
             self.Q[-i] = IV_xor_PT_raw[-i] ^ (padding_byte + 1)
 
     def __find_correct_q(self, padding_byte: int, ciphertext_block: bytes) -> int:
-        # * server request
+        """
+        Find the correct q_n for the given padding byte
+
+        padding_byte: the padding byte
+        ciphertext_block: the ciphertext block
+
+        returns: the correct q_n
+        """
 
         # iterate over the possible values for q_n and add all possible values to a list
         # q_n = 0x00, 0x01, ..., 0xFF
@@ -630,8 +652,10 @@ class PADDING_ORACLE:
         return local_Q[-padding_byte]
 
     def __calc_decrypted_ciphertext_byte(self, q_n: int, padding: int) -> int:
-        # calculate the decrypted ciphertext byte
-        # D(C)_n = q_n ^ padding
+        """
+        calculate the decrypted ciphertext byte
+        D(C)_n = q_n ^ padding
+        """
         return q_n ^ padding
 
 
