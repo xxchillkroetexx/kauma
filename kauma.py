@@ -1,6 +1,5 @@
 import json
 import argparse
-import sys
 
 from helper import bytes_to_base64
 from task01 import (

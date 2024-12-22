@@ -3,6 +3,13 @@ from helper import *
 
 
 def gfpoly_add(args: dict) -> list[str]:
+    """
+    Add two polinomials in a Galois Field
+
+    args: dictionary containing the polynomials A and B
+
+    returns: sum of the two
+    """
     A_b64 = args["A"]
     B_b64 = args["B"]
 
@@ -27,6 +34,13 @@ def gfpoly_add(args: dict) -> list[str]:
 
 
 def gfpoly_mul(args: dict) -> list[str]:
+    """
+    Multiply two polinomials in a Galois Field
+
+    args: dictionary containing the polynomials A and B
+
+    returns: polynomial P
+    """
     A_b64 = args["A"]
     B_b64 = args["B"]
 
@@ -51,6 +65,13 @@ def gfpoly_mul(args: dict) -> list[str]:
 
 
 def gfpoly_pow(args: dict) -> list[str]:
+    """
+    Exponentiate a polynomial in a Galois Field by an exponent
+
+    args: dictionary containing the polynomial A and the exponent k
+
+    returns: polynomial Z
+    """
     A_b64 = args["A"]
     k = int(args["k"])
 
@@ -71,6 +92,13 @@ def gfpoly_pow(args: dict) -> list[str]:
 
 
 def gfdiv(args: dict) -> bytes:
+    """
+    Divide two elements in a Galois Field
+
+    args: dictionary containing the elements a and b
+
+    returns: quotient
+    """
     a = base64_to_bytes(args["a"])
     b = base64_to_bytes(args["b"])
     a = GALOIS_ELEMENT_128(value=reverse_bits_in_bytes(int.from_bytes(a, "little")))
@@ -84,6 +112,13 @@ def gfdiv(args: dict) -> bytes:
 
 
 def gfpoly_divmod(args: dict) -> dict:
+    """
+    Divide two polynomials in a Galois Field with remainder
+
+    args: dictionary containing the polynomials A and B
+
+    returns: dictionary containing the quotient and remainder
+    """
     A_b64 = args["A"]
     B_b64 = args["B"]
 
@@ -110,6 +145,13 @@ def gfpoly_divmod(args: dict) -> dict:
 
 
 def gfpoly_powmod(args: dict) -> dict:
+    """
+    Exponentiate a polynomial in a Galois Field by an exponent modulo another polynomial
+
+    args: dictionary containing the polynomial A, the exponent k and the modulo polynomial M
+
+    returns: polynomial Z
+    """
     A_b64 = args["A"]
     M_b64 = args["M"]
     k = int(args["k"])

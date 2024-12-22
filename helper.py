@@ -279,6 +279,9 @@ def mergesort(list: list) -> list:
 
 
 def merge(left: list, right: list) -> list:
+    """
+    Merge two sorted lists
+    """
     if left == []:
         return right
     if right == []:
@@ -298,6 +301,9 @@ def merge(left: list, right: list) -> list:
 
 
 def compare(poly1, poly2) -> bool:
+    """
+    Compare two polynomials
+    """
     poly1_deg = poly1.get_degree()
     poly2_deg = poly2.get_degree()
     if poly1_deg < poly2_deg:
